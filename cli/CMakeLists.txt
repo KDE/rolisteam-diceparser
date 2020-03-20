@@ -13,15 +13,15 @@ set(CMAKE_AUTOMOC ON)
 set(EXECUTABLE_OUTPUT_PATH bin/)
 
 # Find the QtWidgets library
-set(QT_REQUIRED_VERSION "5.12.0")
+set(QT_REQUIRED_VERSION "5.11.0")
 
 
 
 IF(NO_PAINTER_OPERATOR)
-    find_package(Qt5 ${QT_REQUIRED_VERSION} CONFIG REQUIRED COMPONENTS Core Svg LinguistTools)
+    find_package(Qt5 ${QT_REQUIRED_VERSION} CONFIG REQUIRED COMPONENTS Core Svg)
 else()
     MESSAGE(STATUS "Compilation of operator Paint")
-    find_package(Qt5 ${QT_REQUIRED_VERSION} CONFIG REQUIRED COMPONENTS Core Gui Svg LinguistTools)
+    find_package(Qt5 ${QT_REQUIRED_VERSION} CONFIG REQUIRED COMPONENTS Core Gui Svg )
     add_definitions(-DPAINTER_OP)
 endif()
 
@@ -33,16 +33,16 @@ ADD_DEFINITIONS(
 )
 
 set(dice_RESOURCES diceparser.qrc)
-find_package(Qt5LinguistTools)
 find_package(Qt5Svg)
 
 IF(UPDATE_TRANSLATIONS)
-	MESSAGE( update Translation )
+    find_package(Qt5LinguistTools)
+    MESSAGE( update Translation )
     FILE(GLOB_RECURSE translate_dice_SRCS ../*.cpp ../*.h)
     SET(translate_SRCS ${translate_dice_SRCS})
     SET(dice_TS "${CMAKE_CURRENT_SOURCE_DIR}/i18n/dice_en.ts" "${CMAKE_CURRENT_SOURCE_DIR}/i18n/dice_fr.ts")
 ELSE()
-	MESSAGE( NO updates for translations)
+    MESSAGE( NO updates for translations)
     FILE(GLOB dice_TS "${CMAKE_CURRENT_SOURCE_DIR}/i18n/*.ts")
 ENDIF(UPDATE_TRANSLATIONS)
 
