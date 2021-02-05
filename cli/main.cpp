@@ -30,6 +30,7 @@
 #include <QStringList>
 #include <QTextStream>
 #include <QDebug>
+#include <QSet>
 
 #ifdef PAINTER_OP
 #include <QGuiApplication>
@@ -96,6 +97,7 @@ void displayMarkdown(QString json)
     auto comment= obj["comment"].toString();
     auto arrayInst= obj["instructions"].toArray();
     QStringList diceResults;
+    QSet<QString> array;
     for(auto inst : arrayInst)
     {
         auto obj= inst.toObject();
@@ -104,7 +106,10 @@ void displayMarkdown(QString json)
         {
             auto objval= diceval.toObject();
             auto resultStr= QString::number(objval["value"].toDouble());
-
+	    auto id= objval["uuid"].toString();
+	    if(array.contains(id))
+		    continue;
+	    array.insert(id);
             auto subvalues= objval["subvalues"].toArray();
             QStringList subValueStr;
             for(auto sub : subvalues)
