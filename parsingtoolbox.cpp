@@ -2113,7 +2113,7 @@ bool ParsingToolBox::readDice(QString& str, ExecutionNode*& node)
 bool ParsingToolBox::readDiceOperator(QString& str, DiceOperator& op)
 {
     QStringList listKey= m_mapDiceOp.keys();
-    for(const QString& key : listKey)
+    for(const QString& key : qAsConst(listKey))
     {
         if(str.startsWith(key, Qt::CaseInsensitive))
         {
