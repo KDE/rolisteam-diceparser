@@ -93,7 +93,7 @@ set_target_properties(diceparser_shared PROPERTIES SOVERSION 1)
 
 set_target_properties(diceparser_shared PROPERTIES PUBLIC_HEADER "include/diceparser.h;include/highlightdice.h;include/parsingtoolbox.h;include/dicealias.h;include/diceparserhelper.h")
 
-IF(BUILD_CLI)
+IF(NOT NO_BUILD_CLI)
     add_subdirectory(cli)
 ENDIF()
 

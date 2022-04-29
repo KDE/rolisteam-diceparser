@@ -308,10 +308,9 @@ int startDiceParsing(QStringList& cmds, bool withColor, QString baseColor, EXPOR
     for(auto alias : array)
     {
         auto objAlias= alias.toObject();
-        auto dice
-            = new DiceAlias(objAlias["pattern"].toString(), objAlias["cmd"].toString(), !objAlias["regexp"].toBool());
-        dice->setComment(objAlias["comment"].toString());
-        parser.insertAlias(dice, i++);
+        parser.insertAlias(new DiceAlias(objAlias["pattern"].toString(), objAlias["cmd"].toString(),
+                                         objAlias["comment"].toString(), !objAlias["regexp"].toBool()),
+                           i++);
     }
 
     int rt= 0;
