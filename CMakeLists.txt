@@ -11,7 +11,7 @@ include(CTest)
 enable_testing(true)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} result node)
 
-option(BUILD_CLI OFF)
+option(NO_BUILD_CLI OFF)
 option(NO_PAINTER_OPERATOR OFF)
 
 IF(BUILD_TESTING)
