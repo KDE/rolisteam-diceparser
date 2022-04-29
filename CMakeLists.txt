@@ -6,10 +6,17 @@ set(QT_REQUIRED_VERSION "5.12.0")
 find_package(Qt5 ${QT_REQUIRED_VERSION} CONFIG REQUIRED COMPONENTS Core Test Gui Svg)
 find_package(Qt5 ${QT_REQUIRED_VERSION} CONFIG COMPONENTS Qml Concurrent)
 
+include(CTest)
+
 enable_testing(true)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} result node)
 
 option(BUILD_CLI OFF)
+option(NO_PAINTER_OPERATOR OFF)
+
+IF(BUILD_TESTING)
+  enable_testing()
+ENDIF()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
