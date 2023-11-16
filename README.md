@@ -1,4 +1,4 @@
-[![Logo](https://raw.githubusercontent.com/Rolisteam/rolisteam/master/resources/logo/1000-rolisteam.png)](http://www.rolisteam.org)
+[![Logo](https://invent.kde.org/rolisteam/rolisteam/-/raw/master/resources/rolistheme/1000-rolisteam.png)](http://www.rolisteam.org)
 
 # DiceParser
 
@@ -12,6 +12,10 @@ The syntax is simple and powerful.
 
 [![Discord Bots](https://discordbots.org/api/widget/279722369260453888.svg)](https://discordbots.org/bot/279722369260453888)
 
+
+# Licensing 
+
+* GPL v3
 
 ## Features
 
