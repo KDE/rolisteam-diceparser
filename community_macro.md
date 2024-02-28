@@ -1,6 +1,5 @@
 Here you may find macro made by the community:
 
-
 # Legend of the 5 rings, 4th edition
 
 * Nine-again and reroll 1: `!macro add KNS d10r1e[>8]k False`
@@ -21,7 +20,6 @@ Author: Obi
 
 Author: Obi
 
-
 # Spire/Heart by Rowan, Rook and Deckard
 
 ```
@@ -29,7 +27,6 @@ Author: Obi
 ```
 
 Author: GreaterGerardon
-
 
 # Earthdawn, 3th and 4th editions
 
@@ -92,7 +89,6 @@ Once you set up this macro just input !Xpp where X is the number of dice you are
 !macro add ([0-9]+)pp \1D6;$1c[=2|=4];$1c6;\1;$4i:[>1]{$2+$3*2}{$3*2};"$5 successes [@1]" True
 ```
 
-
 Author:darthgaul
 
 # [Ironsworn](https://www.ironswornrpg.com/)
@@ -111,3 +107,13 @@ Note: Whitespace is optional, so `iron5` should work just as well as `iron 5` or
 
 Author: [Alex Hall](www.alexhall.org)
 
+# [World of Darkness](https://www.paradoxinteractive.com/games/world-of-darkness/about)
+```
+/macro add ([0-9]+)wod([0-9]+) \1d10e10;$1c[>=\2];$1c1;$2-$3;"Dice: @1\nYou have $2 Successes (>=\2) and $3 Failures so the total is $4" True
+```
+
+Usage: /r [How many dice]wod[Target Number]
+
+Note that Target Number is used as Greater or Equal to.
+
+Author: [Eran "Sabre Runner" Arbel](eran.geek.co.il)
