@@ -2,9 +2,11 @@
 
 # Table of Contents
 
-* [DiceParser](#diceparser--what-is-it-)
 * [Roll a die](#how-to-roll-a-die)
-* [List of operator](#list-of-operator)
+* [Roll a range](#roll-dice-in-range)
+* [Instructions](#instructions)
+* [Computation between instructions](#computation-between-instructions)
+* [List of operator](#list-of-operators)
     * [Keep](#keep)
     * [Explode and Keep](#explode-and-keep)
     * [Keep Lower dice](#keep-lower-dice)
@@ -14,7 +16,7 @@
     * [Reroll until](#reroll-until)
     * [Explode](#explode)
     * [Add](#add)
-    * [Occurence](#occurence)
+    * [Occurence](#occurrence)
     * [Backward Jump](#backward-jump)
     * [Paint](#paint)
     * [Merge](#merge)
@@ -43,7 +45,8 @@
     * [Text](#text-values)
     * [Number](#number-values)
     * [Change the odd](#change-the-odd)
-* [Miscellaneous examples](#examples)
+* [Miscellaneous examples](#miscellaneous-examples)
+* [Macro and order](#adding-macro-and-order)
 * [Best Practices](#best-practices)
 * [Platforms](#roll-dice-on-each-platform)
 * [Discord bot](#discord-bot)
@@ -119,7 +122,7 @@ Rolling 3 dice with 10 faces starting at 0.
 Rolling 3 dice, values are between -20 and -9.
 
 
-### Instruction: Roll two (or more) kinds of dice at once
+### Instructions
 
 Adding (or any arithmetic operations) results from two (or more) kinds of dice is easy:
 
@@ -139,6 +142,10 @@ or
 5d6;1d10;4d100;3d20  # 4 instructions
 ```
 
+Like this, you will be able to do some computation if the result of the first instruction respect a condition and so on. 
+For example, if you want to roll an attack, then the second instruction will be the dommages, In the third instruction, you can compare the result of the attack, and if the attack is valid. You can display: 
+
+[see more](#computation-between-instructions)
 
 ### Merge
 
@@ -1172,7 +1179,7 @@ Several results:
 3
 ```
 
-## Examples
+## Miscellaneous Examples
 
 ```
 3D100
@@ -1245,6 +1252,43 @@ Old World in darkness system.
 ```
 
 Exalted 2nd edition system.
+
+## Adding Macro and order
+
+Let's say we want to define 2 macros: `a` and `aa`.
+
+I must add them from the more complex name to the simplest.
+
+
+### Bad
+
+1. `a` => 1d10
+2. `aa` => 2d10
+
+running `aa`:
+The macro system will compare `aa` with the first macro `a` and that match.
+First evaluation, `aa` => `1d10a`
+Second evaluation, `1d10a` => `1d101d10` 
+Final command to be executed: `1d101d10` 
+
+
+### Good
+
+1. `aa` => 2d10
+2. `a` => 1d10
+
+When I run the command: `aa`. 
+The macro system will compare `aa` with `aa`: match
+First evaluation: `aa` => `2d10`
+Final command to be executed: `2d10`
+
+### Some rules 
+
+1. Use regular expression to add contrains about text subtitution
+2. Use complely different name 
+3. Avoid macro pattern that are included into another macro pattern
+
+You should be fine.
 
 
 ## Best Practices
