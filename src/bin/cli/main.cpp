@@ -336,7 +336,8 @@ int startDiceParsing(QStringList& cmds, bool withColor, QString baseColor, EXPOR
                 allSameColor= true;
                 QString colorP;
                 json= parser.resultAsJSon(
-                    [&colorP, &allSameColor](const QString& value, const QString& color, bool) {
+                    [&colorP, &allSameColor](const QString& value, const QString& color, bool)
+                    {
                         if(colorP.isNull())
                             colorP= color;
                         else if(colorP != color)
@@ -348,25 +349,27 @@ int startDiceParsing(QStringList& cmds, bool withColor, QString baseColor, EXPOR
 
                 if(!allSameColor)
                 {
-                    json= parser.resultAsJSon([](const QString& value, const QString& color, bool highlight) {
-                        QString result= value;
-                        bool hasColor= !color.isEmpty();
-                        QString style;
-                        if(hasColor)
+                    json= parser.resultAsJSon(
+                        [](const QString& value, const QString& color, bool highlight)
                         {
-                            style+= QStringLiteral("fill=\"%1\" ").arg(color);
-                        }
-                        if(highlight)
-                        {
-                            if(style.isEmpty())
-                                style+= QStringLiteral("fill=\"%1\" ")
-                                            .arg("red"); // default color must get the value from the setting object
-                            style+= QStringLiteral("font-weight=\"bold\" ");
-                        }
-                        if(!style.isEmpty())
-                            result= QString("<tspan %2>%1</tspan>").arg(value).arg(style);
-                        return result;
-                    });
+                            QString result= value;
+                            bool hasColor= !color.isEmpty();
+                            QString style;
+                            if(hasColor)
+                            {
+                                style+= QStringLiteral("fill=\"%1\" ").arg(color);
+                            }
+                            if(highlight)
+                            {
+                                if(style.isEmpty())
+                                    style+= QStringLiteral("fill=\"%1\" ")
+                                                .arg("red"); // default color must get the value from the setting object
+                                style+= QStringLiteral("font-weight=\"bold\" ");
+                            }
+                            if(!style.isEmpty())
+                                result= QString("<tspan %2>%1</tspan>").arg(value).arg(style);
+                            return result;
+                        });
                 }
             }
             else if(TERMINAL == format)
@@ -374,7 +377,8 @@ int startDiceParsing(QStringList& cmds, bool withColor, QString baseColor, EXPOR
                 allSameColor= true;
                 QString colorP;
                 json= parser.resultAsJSon(
-                    [&colorP, &allSameColor, &baseColor](const QString& result, const QString& color, bool hightlight) {
+                    [&colorP, &allSameColor, &baseColor](const QString& result, const QString& color, bool hightlight)
+                    {
                         auto trueColor= color;
                         if(color.isEmpty())
                             trueColor= baseColor;
@@ -590,6 +594,12 @@ int main(int argc, char* argv[])
         cmd= "help";
     }
     QStringList cmdList= optionParser.positionalArguments();
+    for(auto& cmd : cmdList)
+        cmd= QUrl::fromPercentEncoding(cmd.toUtf8());
+
+    qDebug() << "cmdList" << cmdList;
+    // cmdList << "(1)-1d4e4mk00;300;[$1\u0004$3]k1;0100;200;300;[$1,$2,$3]k1TK\u0004;$1+$1;$2i:[<1]{1}{0}";
+    cmdList << "1d4e4mk00;300;100;[$1,$2,$3]k1TK\u0004";
 
     QJsonArray aliases;
     if(optionParser.isSet(alias))

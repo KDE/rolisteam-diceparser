@@ -132,7 +132,8 @@ public:
     void clearUp();
 
     // Build execution tree
-    DiceRollerNode* getDiceRollerNode(ExecutionNode* previous);
+    template <typename T>
+    T* getNode(ExecutionNode* previous);
     DiceRollerNode* addRollDiceNode(qint64 faces, ExecutionNode*);
     ExplodeDiceNode* addExplodeDiceNode(qint64 faces, ExecutionNode* previous);
     Dice::CONDITION_STATE isValidValidator(ExecutionNode* previous, ValidatorList* val);
@@ -222,7 +223,7 @@ public:
     static QString replaceVariableToValue(const QString& source, QStringList values,
                                           QMap<Dice::ERROR_CODE, QString>& errorMap);
     static QString replacePlaceHolderToValue(const QString& source, const QList<ExportedDiceResult>& list,
-                                             bool removeUnhighlighted,
+                                             bool removeUnhighlighted, QList<std::pair<int, QStringList>> inst2Result,
                                              std::function<QString(const QString&, const QString&, bool)> colorize);
     static SubtituteInfo readVariableFromString(const QString& source, int& start);
     static SubtituteInfo readPlaceHolderFromString(const QString& source, int& start);

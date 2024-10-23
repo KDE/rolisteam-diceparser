@@ -5,6 +5,7 @@ set(QT_VERSION_MAJOR "6")
 find_package(Qt${QT_VERSION_MAJOR} ${QT_REQUIRED_VERSION} CONFIG REQUIRED COMPONENTS Core Test Gui Svg)
 find_package(Qt${QT_VERSION_MAJOR} ${QT_REQUIRED_VERSION} CONFIG COMPONENTS Qml Concurrent)
 
+option(STATIC_BUILD OFF)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} result node)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -77,9 +78,17 @@ else()
 endif()
 
 IF(STATIC_BUILD)
-    set_target_properties(diceparser_static PROPERTIES OUTPUT_NAME diceparser CLEAN_DIRECT_OUTPUT 1)
     add_library(diceparser_static STATIC ${dice_sources} )
-    target_include_directories(diceparser_static PRIVATE include)
+    set_target_properties(diceparser_static PROPERTIES OUTPUT_NAME diceparser CLEAN_DIRECT_OUTPUT 1)
+    target_include_directories(diceparser_static
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/node
+        ${CMAKE_CURRENT_SOURCE_DIR}/result
+      PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
     target_link_libraries(diceparser_static PUBLIC Qt6::Core Qt6::Gui Qt6::Svg)
     if(${HAS_INSTALL})
       rinstallLib(diceparser_static libraries)

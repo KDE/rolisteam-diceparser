@@ -183,9 +183,9 @@ bool ParsingToolBox::readDiceLogicOperator(QString& str, Dice::ConditionOperator
 bool ParsingToolBox::readArithmeticOperator(QString& str, Dice::ArithmeticOperator& op)
 {
 
-    auto it= std::find_if(
-        m_arithmeticOperation.begin(), m_arithmeticOperation.end(),
-        [str](const std::pair<QString, Dice::ArithmeticOperator>& pair) { return str.startsWith(pair.first); });
+    auto it= std::find_if(m_arithmeticOperation.begin(), m_arithmeticOperation.end(),
+                          [str](const std::pair<QString, Dice::ArithmeticOperator>& pair)
+                          { return str.startsWith(pair.first); });
     if(it == m_arithmeticOperation.end())
         return false;
 
@@ -713,12 +713,21 @@ QString ParsingToolBox::finalStringResult(std::function<QString(const QString&, 
     QStringList allStringlist= allFirstResultAsString(ok);
     auto listFull= diceResultFromEachInstruction();
 
+    QList<std::pair<int, QStringList>> placeHolderInfo;
     QStringList resultWithPlaceHolder;
-    std::for_each(allStringlist.begin(), allStringlist.end(), [&resultWithPlaceHolder](const QString& sub) {
-        QRegularExpression ex("%[1-3]?|\\$[1-9]+|@[1-9]+");
-        if(sub.contains(ex))
-            resultWithPlaceHolder.append(sub);
-    });
+    int i= 0;
+    std::for_each(allStringlist.begin(), allStringlist.end(),
+                  [&resultWithPlaceHolder, &placeHolderInfo, &i](const QString& sub)
+                  {
+                      static QRegularExpression ex("%[1-3]?|\\$-?[1-9]+|@-?[1-9]+");
+                      if(sub.contains(ex))
+                      {
+                          resultWithPlaceHolder.append(sub);
+                          auto pair= std::make_pair(i, QStringList{sub});
+                          placeHolderInfo.append(pair);
+                      }
+                      ++i;
+                  });
     auto stringResult= resultWithPlaceHolder.isEmpty() ? allStringlist.join(",") : resultWithPlaceHolder.join(",");
 
     auto pairScalar= finalScalarResult();
@@ -730,8 +739,8 @@ QString ParsingToolBox::finalStringResult(std::function<QString(const QString&, 
 
     QMap<Dice::ERROR_CODE, QString> errorMap;
     stringResult= ParsingToolBox::replaceVariableToValue(stringResult, allStringlist, errorMap);
-    stringResult= ParsingToolBox::replacePlaceHolderToValue(stringResult, listFull, removeUnhighlighted, colorize);
-
+    stringResult= ParsingToolBox::replacePlaceHolderToValue(stringResult, listFull, removeUnhighlighted,
+                                                            placeHolderInfo, colorize);
     return stringResult;
 }
 
@@ -924,17 +933,27 @@ bool ParsingToolBox::readStopAtFirst(QString& str)
 
 Dice::CONDITION_STATE ParsingToolBox::isValidValidator(ExecutionNode* previous, ValidatorList* val)
 {
-    DiceRollerNode* node= getDiceRollerNode(previous);
-    if(nullptr == node)
+    auto node= getNode<DiceRollerNode>(previous);
+    if(node)
+        return val->isValidRangeSize(node->getRange());
+
+    auto listNode= getNode<ValuesListNode>(previous);
+
+    if(!listNode)
         return Dice::CONDITION_STATE::ERROR_STATE;
 
-    return val->isValidRangeSize(node->getRange());
+    auto dice= dynamic_cast<DiceResult*>(listNode->getResult());
+    if(!dice)
+        return Dice::CONDITION_STATE::ERROR_STATE;
+
+    return Dice::CONDITION_STATE::REACHABLE;
 }
-DiceRollerNode* ParsingToolBox::getDiceRollerNode(ExecutionNode* previous)
+template <typename T>
+T* ParsingToolBox::getNode(ExecutionNode* previous)
 {
     while(nullptr != previous)
     {
-        DiceRollerNode* node= dynamic_cast<DiceRollerNode*>(previous);
+        auto node= dynamic_cast<T*>(previous);
         if(nullptr != node)
         {
             return node;
@@ -993,7 +1012,7 @@ ParsingToolBox::LIST_OPERATOR ParsingToolBox::readListOperator(QString& str)
     {
         auto keys= hash.keys();
         findOne= false;
-        for(auto const& key : qAsConst(keys))
+        for(auto const& key : std::as_const(keys))
         {
             if(str.startsWith(key))
             {
@@ -1209,13 +1228,13 @@ QString ParsingToolBox::replacePlaceHolderFromJson(const QString& source, const 
     QStringList resultList;
     auto instructions= obj["instructions"].toArray();
     std::vector<std::vector<std::pair<int, QList<QStringList>>>> instructionResult;
-    for(auto inst : qAsConst(instructions))
+    for(auto inst : std::as_const(instructions))
     {
         std::vector<std::pair<int, QList<QStringList>>> map;
         auto obj= inst.toObject();
         auto vals= obj["diceval"].toArray();
         int lastFace= -1;
-        for(auto const& valRef : qAsConst(vals))
+        for(auto const& valRef : std::as_const(vals))
         {
             auto diceObj= valRef.toObject();
             auto face= diceObj["face"].toInt();
@@ -1239,7 +1258,8 @@ QString ParsingToolBox::replacePlaceHolderFromJson(const QString& source, const 
         instructionResult.push_back(map);
     }
     std::transform(std::begin(instructionResult), std::end(instructionResult), std::back_inserter(resultList),
-                   [](const std::vector<std::pair<int, QList<QStringList>>>& map) {
+                   [](const std::vector<std::pair<int, QList<QStringList>>>& map)
+                   {
                        QStringList valuesStr;
                        auto multiKey= (map.size() > 1);
                        for(auto item : map)
@@ -1282,23 +1302,34 @@ QString ParsingToolBox::replacePlaceHolderFromJson(const QString& source, const 
 
 QString ParsingToolBox::replacePlaceHolderToValue(const QString& source, const QList<ExportedDiceResult>& list,
                                                   bool removeUnhighlighted,
+                                                  QList<std::pair<int, QStringList>> inst2Result,
                                                   std::function<QString(const QString&, const QString&, bool)> colorize)
 {
+    // qDebug() << "replacePlaceHolderToValue:" << source;
+    /*for(auto& result : list)
+        for(auto [key, value] : result.asKeyValueRange())
+            for(auto const& resultList : value)
+                for(auto const& diceResult : resultList)
+                    qDebug() << "result:" << diceResult.getResultString() << diceResult.faces();*/
+
     QStringList resultList;
     std::transform(
         std::begin(list), std::end(list), std::back_inserter(resultList),
-        [removeUnhighlighted, colorize](const ExportedDiceResult& dice) {
+        [removeUnhighlighted, colorize](const ExportedDiceResult& dice)
+        {
             QStringList valuesStr;
             if(dice.size() == 1)
             {
                 auto values= dice.values();
                 std::transform(
                     std::begin(values), std::end(values), std::back_inserter(valuesStr),
-                    [removeUnhighlighted, colorize](const QList<ListDiceResult>& dice) {
+                    [removeUnhighlighted, colorize](const QList<ListDiceResult>& dice)
+                    {
                         QStringList textList;
                         std::transform(
                             std::begin(dice), std::end(dice), std::back_inserter(textList),
-                            [removeUnhighlighted, colorize](const ListDiceResult& dice) {
+                            [removeUnhighlighted, colorize](const ListDiceResult& dice)
+                            {
                                 QStringList list;
                                 ListDiceResult values= dice;
                                 if(removeUnhighlighted)
@@ -1309,9 +1340,8 @@ QString ParsingToolBox::replacePlaceHolderToValue(const QString& source, const Q
                                 }
 
                                 std::transform(std::begin(values), std::end(values), std::back_inserter(list),
-                                               [colorize](const HighLightDice& hl) {
-                                                   return colorize(hl.getResultString(), {}, hl.isHighlighted());
-                                               });
+                                               [colorize](const HighLightDice& hl)
+                                               { return colorize(hl.getResultString(), {}, hl.isHighlighted()); });
                                 return list.join(",");
                             });
                         textList.removeAll(QString());
@@ -1335,23 +1365,38 @@ QString ParsingToolBox::replacePlaceHolderToValue(const QString& source, const Q
             return valuesStr.join(",");
         });
 
-    QString result= source;
+    QString result;
     int start= source.size() - 1;
-    bool valid= true;
-    do
+    // qDebug() << "replacePlaceHolderToValue @@@:" << result << start << resultList << inst2Result;
+
+    for(auto const& pair : inst2Result)
     {
-        auto ref= readPlaceHolderFromString(source, start);
-        if(ref.isValid())
+        auto instId= pair.first;
+        auto list= pair.second.join(",");
+        int start= list.size() - 1;
+        bool valid= true;
+        do
         {
-            result.remove(ref.position(), ref.length());
-            auto val= resultList[ref.resultIndex() - 1];
-            result.insert(ref.position(), val);
-        }
-        else
-        {
-            valid= false;
-        }
-    } while(valid);
+            auto ref= readPlaceHolderFromString(list, start);
+
+            if(!ref.isValid())
+                break;
+
+            list.remove(ref.position(), ref.length());
+            auto index= ref.resultIndex() < 0 ? instId + ref.resultIndex() : ref.resultIndex() - 1;
+            qDebug() << "index: " << index << instId;
+            auto val= resultList[index - 1];
+            list.insert(ref.position(), val);
+            if(result.isEmpty())
+                result= list;
+            else
+                result= QStringList{result, list}.join(" ,");
+
+        } while(valid);
+    }
+
+    if(result.isEmpty())
+        return source;
 
     return result;
 }
@@ -1528,7 +1573,7 @@ bool ParsingToolBox::readValuesList(QString& str, ExecutionNode*& node)
     auto list= liststr.split(",");
     str= str.remove(0, pos + 1);
     auto values= new ValuesListNode();
-    for(auto var : qAsConst(list))
+    for(auto var : std::as_const(list))
     {
         qint64 number= 1;
         var= var.trimmed();
@@ -1644,11 +1689,14 @@ bool ParsingToolBox::readOption(QString& str, ExecutionNode* previous) //,
                 {
                     auto validity= isValidValidator(previous, validatorList);
 
-                    FilterNode* filterNode= new FilterNode();
-                    filterNode->setValidatorList(validatorList);
+                    if(validity != Dice::CONDITION_STATE::ERROR_STATE)
+                    {
+                        FilterNode* filterNode= new FilterNode();
+                        filterNode->setValidatorList(validatorList);
 
-                    previous->setNextNode(filterNode);
-                    found= true;
+                        previous->setNextNode(filterNode);
+                        found= true;
+                    }
                 }
             }
             break;
@@ -2132,7 +2180,7 @@ bool ParsingToolBox::readDice(QString& str, ExecutionNode*& node)
 bool ParsingToolBox::readDiceOperator(QString& str, DiceOperator& op)
 {
     QStringList listKey= m_mapDiceOp.keys();
-    for(const QString& key : qAsConst(listKey))
+    for(const QString& key : std::as_const(listKey))
     {
         if(str.startsWith(key, Qt::CaseInsensitive))
         {

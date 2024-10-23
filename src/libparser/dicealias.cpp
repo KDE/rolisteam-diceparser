@@ -117,7 +117,6 @@ QString makeReplament(const QString& pattern, const QString& command, QString cm
                 pos+= 1;
             }
 
-            // TODO to be replace by C++14 when it is ready
             for(auto i= patternPosList.rbegin(); i != patternPosList.rend(); ++i)
             {
                 cmd.replace(*i, 1, command);

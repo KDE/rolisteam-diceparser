@@ -105,7 +105,7 @@ void DiceParser::start()
 {
     for(auto start : m_parsingToolbox->getStartNodes())
     {
-        start->run();
+        start->execute();
     }
 }
 

@@ -153,25 +153,25 @@ bool Die::hasChildrenValue()
 }
 void Die::replaceLastValue(qint64 value)
 {
-    m_rollResult.removeLast();
+    if(!m_rollResult.isEmpty())
+        m_rollResult.removeLast();
     insertRollValue(value);
 }
 
 void Die::roll(bool adding)
 {
-    if(m_maxValue != 0)
+    if(std::abs(m_base) >= std::abs(m_maxValue))
+        return;
+
+    std::uniform_int_distribution<qint64> dist(m_base, m_maxValue);
+    qint64 value= dist(s_rng);
+    if((adding) || (m_rollResult.isEmpty()))
     {
-        // quint64 value=(qrand()%m_faces)+m_base;
-        std::uniform_int_distribution<qint64> dist(m_base, m_maxValue);
-        qint64 value= dist(s_rng);
-        if((adding) || (m_rollResult.isEmpty()))
-        {
-            insertRollValue(value);
-        }
-        else
-        {
-            replaceLastValue(value);
-        }
+        insertRollValue(value);
+    }
+    else
+    {
+        replaceLastValue(value);
     }
 }
 
@@ -182,11 +182,9 @@ quint64 Die::getFaces() const
 qint64 Die::getLastRolledValue()
 {
     if(!m_rollResult.isEmpty())
-    {
         return m_rollResult.last();
-    }
-    else
-        return 0;
+
+    return 0;
 }
 bool Die::hasBeenDisplayed() const
 {
