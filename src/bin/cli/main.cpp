@@ -249,11 +249,11 @@ void displayCommandResult(QString json, bool withColor, QString color)
     auto comment= obj["comment"].toString();
     auto arrayInst= obj["instructions"].toArray();
     QStringList diceResults;
-    for(const auto& inst : qAsConst(arrayInst))
+    for(const auto& inst : std::as_const(arrayInst))
     {
         auto obj= inst.toObject();
         auto diceVals= obj["diceval"].toArray();
-        for(const auto& diceval : qAsConst(diceVals))
+        for(const auto& diceval : std::as_const(diceVals))
         {
             auto objval= diceval.toObject();
             auto resultStr= objval["string"].toString();
