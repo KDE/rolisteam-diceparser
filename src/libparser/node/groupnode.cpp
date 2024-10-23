@@ -238,77 +238,118 @@ bool GroupNode::composeWithPrevious(DieGroup previous, qint64 first, qint64 curr
     return found;
 }
 
+DieGroup GroupNode::findPerfect(DieGroup values, int count, int currentValue) const
+{
+    for(auto it= values.rbegin(); it != values.rend(); ++it)
+    {
+        DieGroup g;
+        for(int i= 0; i < count && (it + i) != values.rend(); ++i)
+            g << *(it + i);
+
+        if(currentValue + g.getSum() == m_groupValue)
+            return g;
+    }
+    return {};
+}
+
+DieGroup GroupNode::findCombo(DieGroup values, int count, int currentValue) const
+{
+    for(auto it= values.rbegin(); it != values.rend(); ++it)
+    {
+        DieGroup g;
+        for(int i= 0; i < count && (it + i) != values.rend(); ++i)
+            g << *(it + i);
+
+        if(currentValue + g.getSum() > m_groupValue)
+            return g;
+    }
+    return {};
+}
+
 QList<DieGroup> GroupNode::getGroup(DieGroup values)
 {
     if(values.isEmpty())
         return {};
 
-    auto first= values.takeFirst();
-
-    QList<DieGroup> result;
+    bool bigger= true;
     QMap<qint64, DieGroup> loseMap;
-    if(first >= m_groupValue)
+    QList<DieGroup> result;
+    do
     {
-        DieGroup group;
-        group << first;
-        loseMap[0]= group;
-    }
-    else
-    {
-        auto it= values.rbegin();
-        bool foundPerfect= false;
-        qint64 cumuledValue= 0;
-        DieGroup previousValue;
-        while((values.rend() != it) && !foundPerfect)
-        {
-            if(first + *it == m_groupValue)
-            {
-                foundPerfect= true;
-                DieGroup group;
-                group << first << *it;
-                loseMap[0]= group;
-            }
-            else if(first + *it > m_groupValue)
-            {
-                DieGroup group;
-                group << first << *it;
-                loseMap[first + *it - m_groupValue]= group;
-            }
-            else if(first + *it + cumuledValue == m_groupValue)
-            {
-                DieGroup group;
-                group << first << *it << previousValue;
-                foundPerfect= true;
-                loseMap[0]= group;
-            }
-            else if(first + *it + cumuledValue > m_groupValue)
-            {
-                DieGroup group;
-                group.setExceptedValue(m_groupValue);
-                auto b= composeWithPrevious(previousValue, first, *it, group);
-                if(b)
-                    loseMap[group.getLost()]= group;
-            }
-            previousValue << *it;
-            cumuledValue+= *it;
-            ++it;
-        }
-    }
-    if(!loseMap.isEmpty())
-    {
-        DieGroup die= loseMap.first();
-        result.append(die);
-        DieGroup valueToRemove= die;
-        if(!valueToRemove.isEmpty())
-        {
-            valueToRemove.removeFirst();
-            values.removeValue(valueToRemove);
+        auto it= std::begin(values);
+        bigger= (*it >= m_groupValue);
+        if(!bigger)
+            continue;
 
-            if(values.getSum() >= m_groupValue)
+        DieGroup group;
+        group << *it;
+        result << group;
+        values.remove(0);
+
+    } while(bigger && !values.isEmpty());
+
+    auto remaining= values;
+    while(remaining.getSum() >= m_groupValue)
+    {
+        if(remaining.isEmpty())
+            break;
+
+        QList<qint64> useless;
+        bool perfect= false;
+        // find perfect
+        do
+        {
+            auto base= remaining[0];
+            remaining.removeFirst();
+            perfect= false;
+            for(int i= 1; i <= remaining.size() && !perfect; ++i)
             {
-                result.append(getGroup(values));
+                auto foundValues= findPerfect(remaining, i, base);
+                perfect= !foundValues.isEmpty();
+                if(perfect)
+                {
+                    remaining.removeValue(foundValues);
+                    foundValues.prepend(base);
+                    foundValues.sort();
+                    result.append(foundValues);
+                }
             }
-        }
+
+            if(!perfect)
+                useless.append(base);
+
+        } while(!remaining.isEmpty());
+
+        remaining << useless;
+
+        // find group with lost
+        bool found= false;
+        if(remaining.isEmpty())
+            break;
+        do
+        {
+            auto base= remaining[0];
+            remaining.removeFirst();
+            found= false;
+            for(int i= 1; i <= remaining.size() && !found; ++i)
+            {
+
+                auto foundValues= findCombo(remaining, i, base);
+
+                found= !foundValues.isEmpty();
+                if(found)
+                {
+                    remaining.removeValue(foundValues);
+                    foundValues.append(base);
+                    foundValues.sort();
+                    foundValues.setExceptedValue(m_groupValue);
+
+                    loseMap[foundValues.getLost()]= foundValues;
+                    result.append(foundValues);
+                }
+            }
+        } while(found && !remaining.isEmpty());
     }
+
     return result;
 }
