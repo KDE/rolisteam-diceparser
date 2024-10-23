@@ -222,7 +222,7 @@ qint64 BooleanCondition::valueToScalar() const
     if(m_value == nullptr)
         return 0;
 
-    m_value->run(nullptr);
+    m_value->execute(nullptr);
     auto result= m_value->getResult();
     if(result)
         return result->getResult(Dice::RESULT_TYPE::SCALAR).toInt();

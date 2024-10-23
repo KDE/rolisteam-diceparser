@@ -77,15 +77,17 @@ bool StringResult::hasHighLight() const
 
 void StringResult::finished()
 {
-    if(isDigitOnly())
-    {
-        std::for_each(m_value.begin(), m_value.end(), [this](const QString& str) {
-            auto die= new Die();
-            die->setMaxValue(m_stringCount);
-            die->setValue(str.toInt());
-            insertResult(die);
-        });
-    }
+    if(!isDigitOnly())
+        return;
+
+    std::for_each(m_value.begin(), m_value.end(),
+                  [this](const QString& str)
+                  {
+                      auto die= new Die();
+                      die->setMaxValue(m_stringCount);
+                      die->setValue(str.toInt());
+                      insertResult(die);
+                  });
 }
 
 void StringResult::setStringCount(int count)
@@ -95,11 +97,13 @@ void StringResult::setStringCount(int count)
 
 bool StringResult::isDigitOnly() const
 {
-    return std::all_of(m_value.begin(), m_value.end(), [](const QString& str) {
-        bool ok= false;
-        str.toInt(&ok);
-        return ok;
-    });
+    return std::all_of(m_value.begin(), m_value.end(),
+                       [](const QString& str)
+                       {
+                           bool ok= false;
+                           str.toInt(&ok);
+                           return ok;
+                       });
 }
 
 Result* StringResult::getCopy() const

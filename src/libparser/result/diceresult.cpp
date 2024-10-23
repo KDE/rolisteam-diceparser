@@ -47,9 +47,12 @@ void DiceResult::setHomogeneous(bool b)
 
 void DiceResult::setResultList(QList<Die*> list)
 {
-    m_diceValues.erase(
+    for(auto& it : list)
+        m_diceValues.removeAll(it);
+
+    /*m_diceValues.erase(
         std::remove_if(m_diceValues.begin(), m_diceValues.end(), [list](Die* die) { return list.contains(die); }),
-        m_diceValues.end());
+        m_diceValues.end());*/
 
     qDeleteAll(m_diceValues.begin(), m_diceValues.end());
     m_diceValues.clear();
@@ -103,6 +106,9 @@ qreal DiceResult::getScalarResult()
         int i= 0;
         for(auto& tmp : m_diceValues)
         {
+            if(!tmp)
+                continue;
+
             if(i > 0)
             {
                 switch(m_operator)
@@ -182,6 +188,8 @@ Result* DiceResult::getCopy() const
     QList<Die*> list;
     for(auto die : m_diceValues)
     {
+        if(!die)
+            continue;
         auto newdie= new Die(*die);
         newdie->setDisplayed(false);
         // die->displayed();
