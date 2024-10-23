@@ -26,6 +26,9 @@
 #include "validator.h"
 #include <QDebug>
 #include <utility>
+#include <QLoggingCategory>
+
+Q_LOGGING_CATEGORY(DiceCat, "DiceParser")
 
 void mergeResultsAsAND(const ValidatorResult& diceList, ValidatorResult& result)
 {
@@ -53,6 +56,9 @@ void mergeResultsAsExeclusiveOR(const ValidatorResult& diceList, ValidatorResult
 
 DiceResult* getDiceResult(Result* result)
 {
+    if(!result)
+        return nullptr;
+
     auto dice= dynamic_cast<DiceResult*>(result);
     if(nullptr == dice)
     {
@@ -61,8 +67,7 @@ DiceResult* getDiceResult(Result* result)
         auto die= new Die();
         die->setValue(value);
         dice->insertResult(die);
-        qWarning("Error, no dice result");
-        // TODO: manage error here.
+        qCWarning(DiceCat) << "Error, no dice result";
     }
     return dice;
 }
@@ -305,7 +310,7 @@ void ValidatorList::validResult(Result* result, bool recursive, bool unlight,
 
                 if(m_validatorList.size() > 1)
                 {
-                    for(auto const& die : qAsConst(diceResult->getResultList()))
+                    for(auto const& die : std::as_const(diceResult->getResultList()))
                     {
                         validResult.appendValidDice(die, die->getValue());
                     }
@@ -322,7 +327,7 @@ void ValidatorList::validResult(Result* result, bool recursive, bool unlight,
             DiceResult* diceResult= getDiceResult(result);
             if(nullptr == diceResult)
                 break;
-            for(auto const& die : qAsConst(diceResult->getResultList()))
+            for(auto const& die : std::as_const(diceResult->getResultList()))
             {
                 auto score= validator->hasValid(die, recursive, unlight);
                 if(score)
@@ -337,7 +342,7 @@ void ValidatorList::validResult(Result* result, bool recursive, bool unlight,
             DiceResult* diceResult= getDiceResult(result);
             if(nullptr == diceResult)
                 break;
-            for(auto const& die : qAsConst(diceResult->getResultList()))
+            for(auto const& die : std::as_const(diceResult->getResultList()))
             {
                 auto score= validator->hasValid(die, recursive, unlight);
                 if(score)
@@ -359,7 +364,7 @@ void ValidatorList::validResult(Result* result, bool recursive, bool unlight,
             if(all)
             {
                 validResult.setAllTrue(true);
-                for(auto die : qAsConst(diceResult->getResultList()))
+                for(auto die : std::as_const(diceResult->getResultList()))
                 {
                     validResult.appendValidDice(die, die->getValue());
                 }
@@ -378,7 +383,7 @@ void ValidatorList::validResult(Result* result, bool recursive, bool unlight,
             if(any)
             {
                 validResult.setAllTrue(true);
-                for(auto die : qAsConst(diceResult->getResultList()))
+                for(auto die : std::as_const(diceResult->getResultList()))
                 {
                     validResult.appendValidDice(die, die->getValue());
                 }
