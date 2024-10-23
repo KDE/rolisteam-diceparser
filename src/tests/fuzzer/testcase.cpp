@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
-#include <diceparser.h>
+#include <include/diceparser/diceparser.h>
 
 static DiceParser* parser= new DiceParser();
 

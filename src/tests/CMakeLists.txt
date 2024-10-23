@@ -1,2 +1,4 @@
-#add_subdirectory(fuzzer)
 add_subdirectory(dice)
+if(STATIC_BUILD)
+    add_subdirectory(fuzzer)
+endif()
