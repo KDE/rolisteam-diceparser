@@ -38,6 +38,7 @@ public:
     qint64 getExceptedValue() const;
     void setExceptedValue(qint64 exceptedValue);
 
+    void sort();
 private:
     qint64 m_exceptedValue= 0;
 };
@@ -60,6 +61,10 @@ public:
 
 protected:
     bool composeWithPrevious(DieGroup previous, qint64 first, qint64 current, DieGroup& addValue);
+
+private:
+    DieGroup findPerfect(DieGroup values, int count, int currentValue) const;
+    DieGroup findCombo(DieGroup values, int count, int currentValue) const;
 
 private:
     ScalarResult* m_scalarResult;

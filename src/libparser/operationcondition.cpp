@@ -146,7 +146,9 @@ qint64 OperationCondition::valueToScalar() const
 
     m_value->run(nullptr);
     auto result= m_value->getResult();
-    return result->getResult(Dice::RESULT_TYPE::SCALAR).toInt();
+    if(result)
+        return result->getResult(Dice::RESULT_TYPE::SCALAR).toInt();
+    return 0;
 }
 
 const std::set<qint64>& OperationCondition::getPossibleValues(const std::pair<qint64, qint64>& range)

@@ -19,85 +19,80 @@ RerollDiceNode::~RerollDiceNode()
 }
 void RerollDiceNode::run(ExecutionNode* previous)
 {
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
+
     m_previousNode= previous;
-    if((nullptr != previous) && (nullptr != previous->getResult()))
+
+    auto previousDiceResult= previous->getResult();
+    if(isValid(!previousDiceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    DiceResult* previous_result= dynamic_cast<DiceResult*>(previousDiceResult);
+    if(isValid(!previous_result, Dice::ERROR_CODE::DIE_RESULT_EXPECTED,
+               tr(" The a operator expects dice result. Please check the documentation and fix your command.")))
+        return;
+
+    m_result->setPrevious(previous_result);
+
+    for(auto& die : previous_result->getResultList())
     {
-        DiceResult* previous_result= dynamic_cast<DiceResult*>(previous->getResult());
-        m_result->setPrevious(previous_result);
-        if(nullptr != previous_result)
+        Die* tmpdie= new Die(*die);
+        m_diceResult->insertResult(tmpdie);
+        die->displayed();
+    }
+    // m_diceResult->setResultList(list);
+
+    QList<Die*>& list= m_diceResult->getResultList();
+    QList<Die*> toRemove;
+
+    for(auto& die : list)
+    {
+        bool finished= false;
+        auto state
+            = m_validatorList->isValidRangeSize(std::make_pair<qint64, qint64>(die->getBase(), die->getMaxValue()));
+        if((Dice::CONDITION_STATE::ALWAYSTRUE == state && m_adding)
+           || (!m_reroll && !m_adding && state == Dice::CONDITION_STATE::UNREACHABLE))
         {
-            for(auto& die : previous_result->getResultList())
+            m_errors.insert(Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
+                            QObject::tr("Condition (%1) cause an endless loop with this dice: %2")
+                                .arg(toString(true))
+                                .arg(QStringLiteral("d[%1,%2]")
+                                         .arg(static_cast<int>(die->getBase()))
+                                         .arg(static_cast<int>(die->getMaxValue()))));
+            continue;
+        }
+        while(m_validatorList->hasValid(die, false) && !finished)
+        {
+            if(m_instruction != nullptr)
             {
-                Die* tmpdie= new Die(*die);
-                m_diceResult->insertResult(tmpdie);
-                die->displayed();
-            }
-            // m_diceResult->setResultList(list);
-
-            QList<Die*>& list= m_diceResult->getResultList();
-            QList<Die*> toRemove;
-
-            for(auto& die : list)
-            {
-                bool finished= false;
-                auto state= m_validatorList->isValidRangeSize(
-                    std::make_pair<qint64, qint64>(die->getBase(), die->getMaxValue()));
-                if((Dice::CONDITION_STATE::ALWAYSTRUE == state && m_adding)
-                   || (!m_reroll && !m_adding && state == Dice::CONDITION_STATE::UNREACHABLE))
+                m_instruction->execute(this);
+                auto lastNode= ParsingToolBox::getLeafNode(m_instruction);
+                if(lastNode != nullptr)
                 {
-                    m_errors.insert(Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
-                                    QObject::tr("Condition (%1) cause an endless loop with this dice: %2")
-                                        .arg(toString(true))
-                                        .arg(QStringLiteral("d[%1,%2]")
-                                                 .arg(static_cast<int>(die->getBase()))
-                                                 .arg(static_cast<int>(die->getMaxValue()))));
-                    continue;
-                }
-                while(m_validatorList->hasValid(die, false) && !finished)
-                {
-                    if(m_instruction != nullptr)
+                    auto lastResult= dynamic_cast<DiceResult*>(lastNode->getResult());
+                    if(lastResult != nullptr)
                     {
-                        m_instruction->run(this);
-                        auto lastNode= ParsingToolBox::getLeafNode(m_instruction);
-                        if(lastNode != nullptr)
-                        {
-                            auto lastResult= dynamic_cast<DiceResult*>(lastNode->getResult());
-                            if(lastResult != nullptr)
-                            {
-                                toRemove.append(die);
-                                list.append(lastResult->getResultList());
-                                lastResult->clear();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        die->roll(m_adding);
-                    }
-                    if(m_reroll)
-                    {
-                        finished= true;
+                        toRemove.append(die);
+                        list.append(lastResult->getResultList());
+                        lastResult->clear();
                     }
                 }
             }
-
-            for(auto die : toRemove)
+            else
             {
-                list.removeOne(die);
+                die->roll(m_adding);
             }
-
-            if(nullptr != m_nextNode)
+            if(m_reroll)
             {
-                m_nextNode->run(this);
+                finished= true;
             }
         }
-        else
-        {
-            m_errors.insert(
-                Dice::ERROR_CODE::DIE_RESULT_EXPECTED,
-                QObject::tr(
-                    " The a operator expects dice result. Please check the documentation and fix your command."));
-        }
+    }
+
+    for(auto die : toRemove)
+    {
+        list.removeOne(die);
     }
 }
 void RerollDiceNode::setValidatorList(ValidatorList* val)

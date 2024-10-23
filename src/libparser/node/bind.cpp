@@ -31,6 +31,9 @@ void BindNode::run(ExecutionNode* previous)
     if(nullptr == m_previousNode)
         return;
 
+    if(!m_startList)
+        return;
+
     m_result->setPrevious(previous->getResult());
     for(auto start : *m_startList)
     {
@@ -57,11 +60,6 @@ void BindNode::run(ExecutionNode* previous)
                 tmpResult= tmpResult->getPrevious();
             }
         }
-    }
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
     }
 }
 ExecutionNode* BindNode::getLatestNode(ExecutionNode* node)

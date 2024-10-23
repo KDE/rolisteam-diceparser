@@ -36,24 +36,19 @@ void SwitchCaseNode::setStopAtFirt(bool b)
 
 void SwitchCaseNode::run(ExecutionNode* previous)
 {
-    m_previousNode= previous;
-    if(nullptr == previous)
-    {
-        m_errors.insert(Dice::ERROR_CODE::NO_PREVIOUS_ERROR,
-                        QStringLiteral("No previous node before Switch/Case operator"));
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No previous node before Switch/Case operator")))
         return;
-    }
+
+    m_previousNode= previous;
+
     auto previousResult= previous->getResult();
     m_result->setPrevious(previousResult);
 
-    if(nullptr == previousResult
-       || (!previousResult->hasResultOfType(Dice::RESULT_TYPE::SCALAR)
-           && !previousResult->hasResultOfType(Dice::RESULT_TYPE::DICE_LIST)))
-    {
-        m_errors.insert(Dice::ERROR_CODE::NO_VALID_RESULT,
-                        QStringLiteral("No scalar or dice result before Switch/Case operator"));
+    if(isValid(!previousResult
+                   || (!previousResult->hasResultOfType(Dice::RESULT_TYPE::SCALAR)
+                       && !previousResult->hasResultOfType(Dice::RESULT_TYPE::DICE_LIST)),
+               Dice::ERROR_CODE::NO_VALID_RESULT, tr("No scalar or dice result before Switch/Case operator")))
         return;
-    }
 
     auto diceResult= dynamic_cast<DiceResult*>(previousResult);
 
@@ -63,7 +58,7 @@ void SwitchCaseNode::run(ExecutionNode* previous)
         for(auto die : diceResult->getResultList())
         {
             QStringList resultList;
-            for(auto const& info : qAsConst(m_branchList))
+            for(auto const& info : std::as_const(m_branchList))
             {
                 if(m_stopAtFirst && !resultList.isEmpty())
                     break;
@@ -80,7 +75,7 @@ void SwitchCaseNode::run(ExecutionNode* previous)
                 }
                 else if(resultList.isEmpty())
                 {
-                    info->node->run(m_previousNode);
+                    info->node->execute(m_previousNode);
                     auto lastNode= ParsingToolBox::getLeafNode(info->node);
                     if(lastNode && lastNode->getResult())
                     {
@@ -96,7 +91,7 @@ void SwitchCaseNode::run(ExecutionNode* previous)
     else
     {
         auto scalar= previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal();
-        for(auto const& info : qAsConst(m_branchList))
+        for(auto const& info : std::as_const(m_branchList))
         {
             if(m_stopAtFirst && !finalResultList.isEmpty())
                 break;
@@ -116,7 +111,7 @@ void SwitchCaseNode::run(ExecutionNode* previous)
             }
             else if(finalResultList.isEmpty())
             {
-                info->node->run(m_previousNode);
+                info->node->execute(m_previousNode);
                 auto lastNode= ParsingToolBox::getLeafNode(info->node);
                 if(lastNode && lastNode->getResult())
                 {
@@ -128,16 +123,12 @@ void SwitchCaseNode::run(ExecutionNode* previous)
         }
     }
 
-    for(auto const& str : qAsConst(finalResultList))
+    for(auto const& str : std::as_const(finalResultList))
         m_stringResult->addText(str);
 
-    if(m_stringResult->getText().isEmpty())
-        m_errors.insert(Dice::ERROR_CODE::NO_VALID_RESULT, QStringLiteral("No value fits the Switch/Case operator"));
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
+    if(isValid(m_stringResult->getText().isEmpty(), Dice::ERROR_CODE::NO_VALID_RESULT,
+               tr("No value fits the Switch/Case operator")))
+        return;
 }
 
 QString SwitchCaseNode::toString(bool withLabel) const
@@ -165,7 +156,7 @@ qint64 SwitchCaseNode::getPriority() const
 ExecutionNode* SwitchCaseNode::getCopy() const
 {
     SwitchCaseNode* node= new SwitchCaseNode();
-    for(auto const& info : qAsConst(m_branchList))
+    for(auto const& info : std::as_const(m_branchList))
     {
         node->insertCase(info->node, info->validatorList);
     }

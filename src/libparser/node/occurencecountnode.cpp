@@ -27,13 +27,14 @@ OccurenceCountNode::OccurenceCountNode() : ExecutionNode() {}
 
 void OccurenceCountNode::run(ExecutionNode* previous)
 {
-    m_previousNode= previous;
-    std::map<qint64, qint64> mapOccurence;
-    if(nullptr == m_previousNode)
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
         return;
 
+    m_previousNode= previous;
+    std::map<qint64, qint64> mapOccurence;
+
     DiceResult* previousDiceResult= dynamic_cast<DiceResult*>(m_previousNode->getResult());
-    if(nullptr == previousDiceResult)
+    if(isValid(!previousDiceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
         return;
 
     auto const& diceList= previousDiceResult->getResultList();
@@ -52,14 +53,10 @@ void OccurenceCountNode::run(ExecutionNode* previous)
     }
 
     std::sort(vec.begin(), vec.end());
-    if(nullptr == m_nextNode)
-    {
+    if(!m_nextNode)
         runForStringResult(mapOccurence, vec);
-    }
     else
-    {
         runForDiceResult(mapOccurence);
-    }
 }
 QString OccurenceCountNode::toString(bool label) const
 {
@@ -176,10 +173,5 @@ void OccurenceCountNode::runForDiceResult(const std::map<qint64, qint64>& mapOcc
             die->insertRollValue(key.second * key.first);
             m_diceResult->insertResult(die);
         }
-    }
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
     }
 }

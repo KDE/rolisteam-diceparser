@@ -70,7 +70,7 @@ void RepeaterNode::run(ExecutionNode* previousNode)
     if(nullptr == m_times || m_cmd.empty())
         return;
 
-    m_times->run(this);
+    m_times->execute(this);
     m_times= ParsingToolBox::getLeafNode(m_times);
     auto times= m_times->getResult();
     if(!times)
@@ -86,7 +86,7 @@ void RepeaterNode::run(ExecutionNode* previousNode)
         std::for_each(cmd.begin(), cmd.end(),
                       [this, &resultVec](ExecutionNode* node)
                       {
-                          node->run(this);
+                          node->execute(this);
                           auto end= ParsingToolBox::getLeafNode(node);
                           auto leafResult= end->getResult();
 
@@ -127,8 +127,8 @@ void RepeaterNode::run(ExecutionNode* previousNode)
         // qDebug().noquote() << listOfStrResult.join('\n');
     }
 
-    if(nullptr != m_nextNode)
-        m_nextNode->run(this);
+    /*if(nullptr != m_nextNode)
+        m_nextNode->run(this);*/
 }
 
 QString RepeaterNode::toString(bool withLabel) const

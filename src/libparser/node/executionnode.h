@@ -21,6 +21,8 @@ public:
      * @brief ~ExecutionNode
      */
     virtual ~ExecutionNode();
+
+    virtual void execute(ExecutionNode* previous= nullptr);
     /**
      * @brief run
      * @param previous
@@ -81,6 +83,8 @@ public:
 
     virtual qint64 getScalarResult();
 
+    bool isValid(bool condition, Dice::ERROR_CODE code , const QString& errorTxt, bool error = true);
+
 protected:
     /**
      * @brief m_nextNode
@@ -98,6 +102,8 @@ protected:
      * @brief m_errors
      */
     QMap<Dice::ERROR_CODE, QString> m_errors;
+
+    QMap<Dice::ERROR_CODE, QString> m_warnings;
 
     QString m_id;
 };

@@ -44,7 +44,7 @@ private:
 
 private:
     DiceResult* m_diceResult;
-    std::vector<ExecutionNode*>* m_startList;
+    std::vector<ExecutionNode*>* m_startList{nullptr};
 };
 
 #endif // NUMBERNODE_H

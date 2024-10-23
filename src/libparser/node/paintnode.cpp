@@ -57,39 +57,33 @@ PainterNode::~PainterNode()
 
 void PainterNode::run(ExecutionNode* previous)
 {
-    m_previousNode= previous;
-    if(nullptr == previous)
-    {
-        m_errors.insert(Dice::ERROR_CODE::NO_PREVIOUS_ERROR, QObject::tr("No previous node before Paint operator"));
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
         return;
-    }
+    m_previousNode= previous;
+
     Result* previousResult= previous->getResult();
-    if(nullptr == previousResult)
+    if(isValid(!previousResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
         return;
 
     m_diceResult= dynamic_cast<DiceResult*>(previousResult->getCopy());
-    if(nullptr != m_diceResult)
+    if(isValid(!m_diceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid Dice result")))
+        return;
+
+    QList<Die*> diceList= m_diceResult->getResultList();
+    int pastDice= 0;
+    for(ColorItem& item : m_colors)
     {
-        QList<Die*> diceList= m_diceResult->getResultList();
-        int pastDice= 0;
-        for(ColorItem& item : m_colors)
+        int current= item.colorNumber();
+        QList<Die*>::iterator it;
+        for(it= diceList.begin() + pastDice; it != diceList.end() && current > 0; ++it)
         {
-            int current= item.colorNumber();
-            QList<Die*>::iterator it;
-            for(it= diceList.begin() + pastDice; it != diceList.end() && current > 0; ++it)
-            {
-                (*it)->setColor(item.color());
-                --current;
-                ++pastDice;
-            }
+            (*it)->setColor(item.color());
+            --current;
+            ++pastDice;
         }
-        m_diceResult->setPrevious(previousResult);
-        m_result= m_diceResult;
     }
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
+    m_diceResult->setPrevious(previousResult);
+    m_result= m_diceResult;
 }
 
 QString PainterNode::toString(bool wl) const

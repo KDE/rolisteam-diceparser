@@ -40,6 +40,17 @@ ExecutionNode* ExecutionNode::getNextNode()
 {
     return m_nextNode;
 }
+
+void ExecutionNode::execute(ExecutionNode* previous)
+{
+    auto errorCount= m_errors.count();
+
+    run(previous);
+
+    if(m_nextNode && errorCount == m_errors.count())
+        m_nextNode->execute(this);
+}
+
 QMap<Dice::ERROR_CODE, QString> ExecutionNode::getExecutionErrorMap()
 {
     if(nullptr != m_nextNode)
@@ -98,4 +109,12 @@ qint64 ExecutionNode::getScalarResult()
     if(m_result == nullptr)
         return 0;
     return m_result->getResult(Dice::RESULT_TYPE::SCALAR).toInt();
+}
+
+bool ExecutionNode::isValid(bool condition, Dice::ERROR_CODE code, const QString& errorTxt, bool error)
+{
+    if(condition)
+        error ? m_errors.insert(code, errorTxt) : m_warnings.insert(code, errorTxt);
+
+    return condition;
 }

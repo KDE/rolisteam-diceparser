@@ -35,24 +35,18 @@ void ReplaceValueNode::setStopAtFirt(bool b)
 
 void ReplaceValueNode::run(ExecutionNode* previous)
 {
-    m_previousNode= previous;
-    if(nullptr == previous)
-    {
-        m_errors.insert(Dice::ERROR_CODE::NO_PREVIOUS_ERROR,
-                        QStringLiteral("No previous node before Switch/Case operator"));
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No previous node before Switch/Case operator")))
         return;
-    }
+    m_previousNode= previous;
+
     auto previousResult= previous->getResult();
     m_result->setPrevious(previousResult);
 
-    if(nullptr == previousResult
-       || (!previousResult->hasResultOfType(Dice::RESULT_TYPE::SCALAR)
-           && !previousResult->hasResultOfType(Dice::RESULT_TYPE::DICE_LIST)))
-    {
-        m_errors.insert(Dice::ERROR_CODE::NO_VALID_RESULT,
-                        QStringLiteral("No scalar or dice result before Switch/Case operator"));
+    if(isValid(!previousResult
+                   || (!previousResult->hasResultOfType(Dice::RESULT_TYPE::SCALAR)
+                       && !previousResult->hasResultOfType(Dice::RESULT_TYPE::DICE_LIST)),
+               Dice::ERROR_CODE::NO_VALID_RESULT, tr("No scalar or dice result before Switch/Case operator")))
         return;
-    }
 
     QList<Die*> dieList;
     if(previousResult->hasResultOfType(Dice::RESULT_TYPE::DICE_LIST))
@@ -65,7 +59,7 @@ void ReplaceValueNode::run(ExecutionNode* previous)
     for(auto die : dieList)
     {
         QStringList resultList;
-        for(auto const& info : qAsConst(m_branchList))
+        for(auto const& info : std::as_const(m_branchList))
         {
             if(info->validatorList)
             {
@@ -82,11 +76,6 @@ void ReplaceValueNode::run(ExecutionNode* previous)
             break;
         }
         m_diceResult->insertResult(die);
-    }
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
     }
 }
 
@@ -115,7 +104,7 @@ qint64 ReplaceValueNode::getPriority() const
 ExecutionNode* ReplaceValueNode::getCopy() const
 {
     ReplaceValueNode* node= new ReplaceValueNode();
-    for(auto const& info : qAsConst(m_branchList))
+    for(auto const& info : std::as_const(m_branchList))
     {
         node->insertCase(info->node, info->validatorList);
     }

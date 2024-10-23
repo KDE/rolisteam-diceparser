@@ -31,7 +31,7 @@ void ExplodeDiceNode::run(ExecutionNode* previous)
     qint64 limit= -1;
     if(m_limit)
     {
-        m_limit->run(this);
+        m_limit->execute(this);
         auto limitNode= ParsingToolBox::getLeafNode(m_limit);
         auto result= limitNode->getResult();
         if(result->hasResultOfType(Dice::RESULT_TYPE::SCALAR))
@@ -42,16 +42,15 @@ void ExplodeDiceNode::run(ExecutionNode* previous)
     std::function<void(Die*, qint64)> f= [&hasExploded, this, limit](Die* die, qint64)
     {
         static QHash<Die*, qint64> explodePerDice;
-        if(Dice::CONDITION_STATE::ALWAYSTRUE
-           == m_validatorList->isValidRangeSize(std::make_pair<qint64, qint64>(die->getBase(), die->getMaxValue())))
-        {
-            m_errors.insert(Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
-                            QObject::tr("Condition (%1) cause an endless loop with this dice: %2")
-                                .arg(toString(true))
-                                .arg(QStringLiteral("d[%1,%2]")
-                                         .arg(static_cast<int>(die->getBase()))
-                                         .arg(static_cast<int>(die->getMaxValue()))));
-        }
+        auto validity
+            = m_validatorList->isValidRangeSize(std::make_pair<qint64, qint64>(die->getBase(), die->getMaxValue()));
+        isValid(Dice::CONDITION_STATE::ALWAYSTRUE == validity, Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
+                QObject::tr("Condition (%1) cause an endless loop with this dice: %2")
+                    .arg(toString(true))
+                    .arg(QStringLiteral("d[%1,%2]")
+                             .arg(static_cast<int>(die->getBase()))
+                             .arg(static_cast<int>(die->getMaxValue()))));
+
         hasExploded= true;
         if(limit >= 0)
         {
@@ -70,11 +69,6 @@ void ExplodeDiceNode::run(ExecutionNode* previous)
         hasExploded= false;
         m_validatorList->validResult(m_diceResult, false, false, f);
     } while(hasExploded);
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
 }
 ExplodeDiceNode::~ExplodeDiceNode()
 {

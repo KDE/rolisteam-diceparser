@@ -32,16 +32,9 @@ void ListAliasNode::run(ExecutionNode* previous)
 
     txtResult->addText(buildList());
     txtResult->finished();
-    if(nullptr != previous)
-    {
-        // txtResult->setText(previous->getHelp());
-        m_result->setPrevious(previous->getResult());
-    }
 
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
+    if(previous)
+        m_result->setPrevious(previous->getResult());
 }
 QString ListAliasNode::buildList() const
 {

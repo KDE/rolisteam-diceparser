@@ -23,7 +23,8 @@ void CountExecuteNode::run(ExecutionNode* previous)
     m_previousNode= previous;
     if(nullptr == previous)
     {
-        m_errors.insert(Dice::ERROR_CODE::NO_PREVIOUS_ERROR, QStringLiteral("No scalar result before Swith/Case operator"));
+        m_errors.insert(Dice::ERROR_CODE::NO_PREVIOUS_ERROR,
+                        QStringLiteral("No scalar result before Swith/Case operator"));
         return;
     }
     DiceResult* previousResult= dynamic_cast<DiceResult*>(previous->getResult());
@@ -34,10 +35,11 @@ void CountExecuteNode::run(ExecutionNode* previous)
         std::function<void(Die*, qint64)> f= [&sum](const Die*, qint64 score) { sum+= score; };
         m_validatorList->validResult(previousResult, true, true, f);
         m_scalarResult->setValue(sum);
-        if(nullptr != m_nextNode)
+        // TODO nextNode to null?
+        /*if(nullptr != m_nextNode)
         {
             m_nextNode->run(this);
-        }
+        }*/
     }
 }
 QString CountExecuteNode::toString(bool withlabel) const

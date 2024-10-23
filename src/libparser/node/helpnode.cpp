@@ -21,38 +21,33 @@
 
 HelpNode::HelpNode() : m_path("https://invent.kde.org/rolisteam/rolisteam-diceparser/-/blob/master/HelpMe.md")
 {
-    m_result= new StringResult();
+    m_stringResult= new StringResult();
+    m_result= m_stringResult;
+    m_stringResult->setPrevious(nullptr);
 }
 void HelpNode::run(ExecutionNode* previous)
 {
     m_previousNode= previous;
-    StringResult* txtResult= dynamic_cast<StringResult*>(m_result);
-    txtResult->setHighLight(false);
+    m_stringResult->setHighLight(false);
 
-    if((nullptr == previous) && (txtResult != nullptr))
+    if(!previous)
     {
-        txtResult->addText(QObject::tr("Rolisteam Dice Parser:\n"
-                                       "\n"
-                                       "Example (with ! as prefix):\n"
-                                       "!2d6\n"
-                                       "!1d20\n"
-                                       "!6d10e10k3 (L5R)\n"
-                                       "\n"
-                                       "Full documentation at: %1")
-                               .arg(m_path));
-        m_result->setPrevious(nullptr);
+        m_stringResult->addText(QObject::tr("Rolisteam Dice Parser:\n"
+                                            "\n"
+                                            "Example (with ! as prefix):\n"
+                                            "!2d6\n"
+                                            "!1d20\n"
+                                            "!6d10e10k3 (L5R)\n"
+                                            "\n"
+                                            "Full documentation at: %1")
+                                    .arg(m_path));
     }
-    else if(nullptr != previous)
+    else
     {
-        txtResult->addText(previous->getHelp());
+        m_stringResult->addText(previous->getHelp());
         m_result->setPrevious(previous->getResult());
     }
-    txtResult->finished();
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
+    m_stringResult->finished();
 }
 QString HelpNode::toString(bool wl) const
 {

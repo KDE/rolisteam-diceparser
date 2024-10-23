@@ -29,21 +29,16 @@ void ParenthesesNode::setInternelNode(ExecutionNode* node)
 void ParenthesesNode::run(ExecutionNode* previous)
 {
     m_previousNode= previous;
-    if(nullptr != m_internalNode)
-    {
-        m_internalNode->run(this);
-        ExecutionNode* temp= m_internalNode;
-        while(nullptr != temp->getNextNode())
-        {
-            temp= temp->getNextNode();
-        }
-        m_result= temp->getResult();
-    }
+    if(!m_internalNode)
+        return;
 
-    if(nullptr != m_nextNode)
+    m_internalNode->execute(this);
+    ExecutionNode* temp= m_internalNode;
+    while(nullptr != temp->getNextNode())
     {
-        m_nextNode->run(this);
+        temp= temp->getNextNode();
     }
+    m_result= temp->getResult();
 }
 QString ParenthesesNode::toString(bool b) const
 {

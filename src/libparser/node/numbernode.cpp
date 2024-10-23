@@ -36,15 +36,11 @@ NumberNode::~NumberNode()
 
 void NumberNode::run(ExecutionNode* previous)
 {
+    if(!previous)
+        return;
+
     m_previousNode= previous;
-    if(nullptr != previous)
-    {
-        m_result->setPrevious(previous->getResult());
-    }
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
+    m_result->setPrevious(previous->getResult());
 }
 
 void NumberNode::setNumber(qint64 a)

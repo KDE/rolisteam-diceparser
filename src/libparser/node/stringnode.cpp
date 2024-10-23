@@ -8,14 +8,8 @@ StringNode::StringNode() : m_stringResult(new StringResult())
 void StringNode::run(ExecutionNode* previous)
 {
     m_previousNode= previous;
-    if(nullptr != previous)
-    {
+    if(previous)
         m_result->setPrevious(previous->getResult());
-    }
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
 }
 
 void StringNode::setString(QString str)

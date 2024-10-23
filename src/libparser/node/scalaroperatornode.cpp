@@ -40,74 +40,68 @@ ScalarOperatorNode::~ScalarOperatorNode()
 
 void ScalarOperatorNode::run(ExecutionNode* previous)
 {
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
+
     m_previousNode= previous;
-    if(nullptr != m_internalNode)
+
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
+
+    if(isValid(!m_internalNode, Dice::ERROR_CODE::NO_INTERNAL_INSTRUCTION, tr("No internal node to run")))
+        return;
+
+    m_internalNode->execute(this);
+
+    auto previousResult= previous->getResult();
+    if(isValid(!previousResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No valid result")))
+        return;
+
+    ExecutionNode* internal= m_internalNode;
+
+    while(nullptr != internal->getNextNode())
     {
-        m_internalNode->run(this);
+        internal= internal->getNextNode();
     }
-    if(nullptr != previous)
+
+    Result* internalResult= internal->getResult();
+    m_result->setPrevious(internalResult);
+    if(nullptr != m_internalNode->getResult())
     {
-        auto previousResult= previous->getResult();
+        m_internalNode->getResult()->setPrevious(previousResult);
+    }
 
-        if(nullptr != previousResult)
-        {
-            ExecutionNode* internal= m_internalNode;
-            if(nullptr != internal)
-            {
-                while(nullptr != internal->getNextNode())
-                {
-                    internal= internal->getNextNode();
-                }
+    if(isValid(!internalResult, Dice::ERROR_CODE::NO_VALID_RESULT,
+               tr("No Valid result in arithmetic operation: %1").arg(toString(true))))
+        return;
 
-                Result* internalResult= internal->getResult();
-                m_result->setPrevious(internalResult);
-                if(nullptr != m_internalNode->getResult())
-                {
-                    m_internalNode->getResult()->setPrevious(previousResult);
-                }
-
-                if(internalResult == nullptr)
-                {
-                    m_errors.insert(Dice::ERROR_CODE::NO_VALID_RESULT,
-                                    QObject::tr("No Valid result in arithmetic operation: %1").arg(toString(true)));
-                    return;
-                }
-
-                switch(m_arithmeticOperator)
-                {
-                case Dice::ArithmeticOperator::PLUS:
-                    m_scalarResult->setValue(add(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
-                                                 internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
-                    break;
-                case Dice::ArithmeticOperator::MINUS:
-                    m_scalarResult->setValue(substract(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
-                                                       internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
-                    break;
-                case Dice::ArithmeticOperator::MULTIPLICATION:
-                    m_scalarResult->setValue(multiple(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
-                                                      internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
-                    break;
-                case Dice::ArithmeticOperator::DIVIDE:
-                    m_scalarResult->setValue(divide(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
-                                                    internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
-                    break;
-                case Dice::ArithmeticOperator::INTEGER_DIVIDE:
-                    m_scalarResult->setValue(
-                        static_cast<int>(divide(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
-                                                internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal())));
-                    break;
-                case Dice::ArithmeticOperator::POW:
-                    m_scalarResult->setValue(pow(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
-                                                 internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
-                    break;
-                }
-            }
-
-            if(nullptr != m_nextNode)
-            {
-                m_nextNode->run(this);
-            }
-        }
+    switch(m_arithmeticOperator)
+    {
+    case Dice::ArithmeticOperator::PLUS:
+        m_scalarResult->setValue(add(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
+                                     internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
+        break;
+    case Dice::ArithmeticOperator::MINUS:
+        m_scalarResult->setValue(substract(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
+                                           internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
+        break;
+    case Dice::ArithmeticOperator::MULTIPLICATION:
+        m_scalarResult->setValue(multiple(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
+                                          internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
+        break;
+    case Dice::ArithmeticOperator::DIVIDE:
+        m_scalarResult->setValue(divide(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
+                                        internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
+        break;
+    case Dice::ArithmeticOperator::INTEGER_DIVIDE:
+        m_scalarResult->setValue(
+            static_cast<int>(divide(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
+                                    internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal())));
+        break;
+    case Dice::ArithmeticOperator::POW:
+        m_scalarResult->setValue(pow(previousResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal(),
+                                     internalResult->getResult(Dice::RESULT_TYPE::SCALAR).toReal()));
+        break;
     }
 }
 /*bool ScalarOperatorNode::setOperatorChar(QChar c)

@@ -64,6 +64,7 @@ public:
 
 private:
     QString m_path;
+    StringResult* m_stringResult;
 };
 
 #endif // HELPNODE_H

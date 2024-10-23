@@ -31,11 +31,10 @@ KeepDiceExecNode::~KeepDiceExecNode() {}
 void KeepDiceExecNode::run(ExecutionNode* previous)
 {
     m_previousNode= previous;
-    if(nullptr == previous || nullptr == m_numberOfDiceNode)
-    {
+    if(isValid(!previous || !m_numberOfDiceNode, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
         return;
-    }
-    m_numberOfDiceNode->run(previous);
+
+    m_numberOfDiceNode->execute(previous);
     auto lastnode= ParsingToolBox::getLeafNode(m_numberOfDiceNode);
     if(nullptr == lastnode)
         return;
@@ -49,45 +48,41 @@ void KeepDiceExecNode::run(ExecutionNode* previous)
 
     DiceResult* previousDiceResult= dynamic_cast<DiceResult*>(previous->getResult());
     m_result->setPrevious(previousDiceResult);
-    if(nullptr != previousDiceResult)
+
+    if(isValid(!previousDiceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    QList<Die*> diceList= previousDiceResult->getResultList();
+
+    if(numberOfDice < 0)
     {
-        QList<Die*> diceList= previousDiceResult->getResultList();
-
-        if(numberOfDice < 0)
-        {
-            numberOfDice= diceList.size() + numberOfDice;
-        }
-
-        QList<Die*> diceList3= diceList.mid(0, static_cast<int>(numberOfDice));
-        QList<Die*> diceList2;
-
-        for(Die* die : qAsConst(diceList3))
-        {
-            Die* tmpdie= new Die(*die);
-            diceList2.append(tmpdie);
-            die->displayed();
-            die->setSelected(false);
-        }
-
-        if(numberOfDice > static_cast<qint64>(diceList.size()))
-        {
-            m_errors.insert(Dice::ERROR_CODE::TOO_MANY_DICE,
-                            QObject::tr(" You ask to keep %1 dice but the result only has %2")
-                                .arg(numberOfDice)
-                                .arg(diceList.size()));
-        }
-
-        for(auto& tmp : diceList.mid(static_cast<int>(numberOfDice), -1))
-        {
-            tmp->setHighlighted(false);
-        }
-
-        m_diceResult->setResultList(diceList2);
-        if(nullptr != m_nextNode)
-        {
-            m_nextNode->run(this);
-        }
+        numberOfDice= diceList.size() + numberOfDice;
     }
+
+    QList<Die*> diceList3= diceList.mid(0, static_cast<int>(numberOfDice));
+    QList<Die*> diceList2;
+
+    for(Die* die : std::as_const(diceList3))
+    {
+        Die* tmpdie= new Die(*die);
+        diceList2.append(tmpdie);
+        die->displayed();
+        die->setSelected(false);
+    }
+
+    if(numberOfDice > static_cast<qint64>(diceList.size()))
+    {
+        m_errors.insert(
+            Dice::ERROR_CODE::TOO_MANY_DICE,
+            QObject::tr(" You ask to keep %1 dice but the result only has %2").arg(numberOfDice).arg(diceList.size()));
+    }
+
+    for(auto& tmp : diceList.mid(static_cast<int>(numberOfDice), -1))
+    {
+        tmp->setHighlighted(false);
+    }
+
+    m_diceResult->setResultList(diceList2);
 }
 
 void KeepDiceExecNode::setDiceKeepNumber(ExecutionNode* n)

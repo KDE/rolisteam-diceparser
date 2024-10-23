@@ -37,29 +37,29 @@ public:
      * @brief run - performs the actions
      * @param previous
      */
-    virtual void run(ExecutionNode* previous= nullptr);
+    virtual void run(ExecutionNode* previous= nullptr) override;
 
     /**
      * @brief toString
      * @return
      */
-    virtual QString toString(bool) const;
+    virtual QString toString(bool) const override;
     /**
      * @brief getPriority
      * @return
      */
-    virtual qint64 getPriority() const;
+    virtual qint64 getPriority() const override;
     /**
      * @brief generateDotTree
      * @param s
      */
-    virtual void generateDotTree(QString& s);
+    virtual void generateDotTree(QString& s) override;
     /**
      * @brief getCopy
      * @return
      */
-    virtual ExecutionNode* getCopy() const;
-
+    virtual ExecutionNode* getCopy() const override;
+    virtual void execute(ExecutionNode* previous= nullptr) override;
 private:
     DiceResult* m_diceResult;
     ExecutionNode* m_backwardNode;

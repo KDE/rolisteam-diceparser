@@ -27,38 +27,34 @@ SplitNode::SplitNode() : m_diceResult(new DiceResult())
 }
 void SplitNode::run(ExecutionNode* previous)
 {
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
     m_previousNode= previous;
-    if(nullptr != previous)
-    {
-        m_result->setPrevious(previous->getResult());
 
-        Result* tmpResult= previous->getResult();
-        if(nullptr != tmpResult)
-        {
-            DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
-            if(nullptr != dice)
-            {
-                for(auto& oldDie : dice->getResultList())
-                {
-                    oldDie->displayed();
-                    m_diceResult->setOperator(oldDie->getOp());
-                    for(qint64& value : oldDie->getListValue())
-                    {
-                        Die* tmpdie= new Die();
-                        tmpdie->insertRollValue(value);
-                        tmpdie->setBase(oldDie->getBase());
-                        tmpdie->setMaxValue(oldDie->getMaxValue());
-                        tmpdie->setValue(value);
-                        tmpdie->setOp(oldDie->getOp());
-                        m_diceResult->insertResult(tmpdie);
-                    }
-                }
-            }
-        }
-    }
-    if(nullptr != m_nextNode)
+    m_result->setPrevious(previous->getResult());
+
+    Result* tmpResult= previous->getResult();
+    if(isValid(!tmpResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
+    if(isValid(!dice, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid dice result")))
+        return;
+
+    for(auto& oldDie : dice->getResultList())
     {
-        m_nextNode->run(this);
+        oldDie->displayed();
+        m_diceResult->setOperator(oldDie->getOp());
+        for(qint64& value : oldDie->getListValue())
+        {
+            Die* tmpdie= new Die();
+            tmpdie->insertRollValue(value);
+            tmpdie->setBase(oldDie->getBase());
+            tmpdie->setMaxValue(oldDie->getMaxValue());
+            tmpdie->setValue(value);
+            tmpdie->setOp(oldDie->getOp());
+            m_diceResult->insertResult(tmpdie);
+        }
     }
 }
 

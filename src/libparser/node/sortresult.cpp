@@ -30,41 +30,23 @@ SortResultNode::SortResultNode() : m_diceResult(new DiceResult)
 }
 void SortResultNode::run(ExecutionNode* previous)
 {
-    m_previousNode= previous;
-    if(nullptr == previous)
-    {
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
         return;
-    }
+    m_previousNode= previous;
+
     DiceResult* previousDiceResult= dynamic_cast<DiceResult*>(previous->getResult());
     m_diceResult->setPrevious(previousDiceResult);
-    if(nullptr == previousDiceResult)
+    if(isValid(!previousDiceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid dice result")))
         return;
 
     auto const& diceList= previousDiceResult->getResultList();
     QList<Die*> diceList2= m_diceResult->getResultList();
 
-    /* const auto& asce = [](const Die* a,const Die* b){
-         return a->getValue() < b->getValue();
-     };
-     const auto& desc = [](const Die* a,const Die* b){
-         return a->getValue() > b->getValue();
-     };
-
-     for(auto const dice : diceList)
-     {
-         Die* tmp1 = new Die(*dice);
-         diceList2.append(tmp1);
-     }
-     if(m_ascending)
-         std::sort(diceList2.begin(), diceList2.end(), asce);
-     else
-         std::sort(diceList2.begin(), diceList2.end(), desc);*/
-
     // half-interval search sorting
     for(int i= 0; i < diceList.size(); ++i)
     {
         Die* tmp1= new Die(*diceList[i]);
-        //qDebug() << tmp1->getColor() << diceList[i]->getColor();
+        // qDebug() << tmp1->getColor() << diceList[i]->getColor();
         //*tmp1=*diceList[i];
         diceList[i]->displayed();
 
@@ -106,10 +88,6 @@ void SortResultNode::run(ExecutionNode* previous)
         }
     }
     m_diceResult->setResultList(diceList2);
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
 }
 void SortResultNode::setSortAscending(bool asc)
 {

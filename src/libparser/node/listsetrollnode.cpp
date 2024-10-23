@@ -59,41 +59,34 @@ qint64 ListSetRollNode::getPriority() const
 void ListSetRollNode::run(ExecutionNode* previous)
 {
     m_previousNode= previous;
-    if(nullptr != previous)
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
+
+    Result* result= previous->getResult();
+    if(isValid(!result, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    quint64 diceCount= result->getResult(Dice::RESULT_TYPE::SCALAR).toReal();
+
+    if(isValid(diceCount > static_cast<quint64>(m_values.size()) && m_unique, Dice::ERROR_CODE::TOO_MANY_DICE,
+               tr("More unique values asked than possible values (L operator)")))
+        return;
+
+    m_result->setPrevious(result);
+    for(quint64 i= 0; i < diceCount; ++i)
     {
-        Result* result= previous->getResult();
-        if(nullptr != result)
+        QStringList rollResult;
+        Die* die= new Die();
+        computeFacesNumber(die);
+        die->roll();
+        m_diceResult->insertResult(die);
+        getValueFromDie(die, rollResult);
+        for(auto const& str : std::as_const(rollResult))
         {
-            quint64 diceCount= result->getResult(Dice::RESULT_TYPE::SCALAR).toReal();
-            if(diceCount > static_cast<quint64>(m_values.size()) && m_unique)
-            {
-                m_errors.insert(Dice::ERROR_CODE::TOO_MANY_DICE,
-                                tr("More unique values asked than possible values (L operator)"));
-            }
-            else
-            {
-                m_result->setPrevious(result);
-                for(quint64 i= 0; i < diceCount; ++i)
-                {
-                    QStringList rollResult;
-                    Die* die= new Die();
-                    computeFacesNumber(die);
-                    die->roll();
-                    m_diceResult->insertResult(die);
-                    getValueFromDie(die, rollResult);
-                    for(auto const& str : qAsConst(rollResult))
-                    {
-                        m_stringResult->addText(str);
-                    }
-                }
-                m_stringResult->finished();
-            }
-            if(nullptr != m_nextNode)
-            {
-                m_nextNode->run(this);
-            }
+            m_stringResult->addText(str);
         }
     }
+    m_stringResult->finished();
 }
 void ListSetRollNode::setListValue(QStringList lirs)
 {

@@ -19,43 +19,39 @@ void FilterNode::setValidatorList(ValidatorList* validatorlist)
 }
 void FilterNode::run(ExecutionNode* previous)
 {
-    m_previousNode= previous;
-    if(nullptr == previous)
-    {
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
         return;
-    }
+    m_previousNode= previous;
+
     DiceResult* previousDiceResult= dynamic_cast<DiceResult*>(previous->getResult());
     m_result->setPrevious(previousDiceResult);
 
-    if(nullptr != previousDiceResult)
+    if(isValid(!previousDiceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    QList<Die*> diceList2;
+    std::function<void(Die*, qint64)> f= [&diceList2](Die* die, qint64)
     {
-        QList<Die*> diceList2;
-        std::function<void(Die*, qint64)> f= [&diceList2](Die* die, qint64) {
-            if(die == nullptr)
-                return;
-            Die* tmpdie= new Die(*die);
-            diceList2.append(tmpdie);
-            die->displayed();
-        };
-        m_validatorList->validResult(previousDiceResult, true, true, f);
+        if(die == nullptr)
+            return;
+        Die* tmpdie= new Die(*die);
+        diceList2.append(tmpdie);
+        die->displayed();
+    };
+    m_validatorList->validResult(previousDiceResult, true, true, f);
 
-        QList<Die*> diceList= previousDiceResult->getResultList();
+    QList<Die*> diceList= previousDiceResult->getResultList();
 
-        diceList.erase(std::remove_if(diceList.begin(), diceList.end(),
-                                      [&diceList2](Die* die) { return diceList2.contains(die); }),
-                       diceList.end());
-        for(Die* tmp : diceList)
-        {
-            tmp->setHighlighted(false);
-            tmp->setDisplayed(true);
-        }
-
-        m_diceResult->setResultList(diceList2);
-        if(nullptr != m_nextNode)
-        {
-            m_nextNode->run(this);
-        }
+    diceList.erase(
+        std::remove_if(diceList.begin(), diceList.end(), [&diceList2](Die* die) { return diceList2.contains(die); }),
+        diceList.end());
+    for(Die* tmp : diceList)
+    {
+        tmp->setHighlighted(false);
+        tmp->setDisplayed(true);
     }
+
+    m_diceResult->setResultList(diceList2);
 }
 
 QString FilterNode::toString(bool wl) const

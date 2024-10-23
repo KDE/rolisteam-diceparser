@@ -14,50 +14,47 @@ DiceRollerNode::DiceRollerNode(qint64 max, qint64 min)
 void DiceRollerNode::run(ExecutionNode* previous)
 {
     m_previousNode= previous;
-    if(nullptr != previous)
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, QObject::tr("No Previous node")))
+        return;
+
+    Result* result= previous->getResult();
+
+    if(isValid(!result, Dice::ERROR_CODE::NO_VALID_RESULT, QObject::tr("No result from previous node")))
+        return;
+
+    auto num= result->getResult(Dice::RESULT_TYPE::SCALAR).toReal();
+
+    isValid(num <= 0, Dice::ERROR_CODE::NO_DICE_TO_ROLL, QObject::tr("No dice to roll"));
+
+    m_diceCount= num > 0 ? static_cast<quint64>(num) : 0;
+    m_result->setPrevious(result);
+
+    auto possibleValue= static_cast<quint64>(std::abs((m_max - m_min) + 1));
+    if(isValid(possibleValue < m_diceCount && m_unique, Dice::ERROR_CODE::TOO_MANY_DICE,
+               QObject::tr("More unique values asked than possible values (D operator)")))
+        return;
+
+    for(quint64 i= 0; i < m_diceCount; ++i)
     {
-        Result* result= previous->getResult();
-        if(nullptr != result)
+        Die* die= new Die();
+        die->setOp(m_operator);
+        die->setBase(m_min);
+        die->setMaxValue(m_max);
+        die->roll();
+        if(m_unique)
         {
-            auto num= result->getResult(Dice::RESULT_TYPE::SCALAR).toReal();
-            if(num <= 0)
+            const auto& equal= [](const Die* a, const Die* b) { return a->getValue() == b->getValue(); };
+            while(m_diceResult->contains(die, equal))
             {
-                m_errors.insert(Dice::ERROR_CODE::NO_DICE_TO_ROLL, QObject::tr("No dice to roll"));
-            }
-            m_diceCount= num > 0 ? static_cast<quint64>(num) : 0;
-            m_result->setPrevious(result);
-
-            auto possibleValue= static_cast<quint64>(std::abs((m_max - m_min) + 1));
-            if(possibleValue < m_diceCount && m_unique)
-            {
-                m_errors.insert(Dice::ERROR_CODE::TOO_MANY_DICE,
-                                QObject::tr("More unique values asked than possible values (D operator)"));
-                return;
-            }
-
-            for(quint64 i= 0; i < m_diceCount; ++i)
-            {
-                Die* die= new Die();
-                die->setOp(m_operator);
-                die->setBase(m_min);
-                die->setMaxValue(m_max);
-                die->roll();
-                if(m_unique)
-                {
-                    const auto& equal= [](const Die* a, const Die* b) { return a->getValue() == b->getValue(); };
-                    while(m_diceResult->contains(die, equal))
-                    {
-                        die->roll(false);
-                    }
-                }
-                m_diceResult->insertResult(die);
-            }
-            if(nullptr != m_nextNode)
-            {
-                m_nextNode->run(this);
+                die->roll(false);
             }
         }
+        m_diceResult->insertResult(die);
     }
+    /*if(nullptr != m_nextNode)
+    {TODO nextNode to null?
+        m_nextNode->run(this);
+    }*/
 }
 
 quint64 DiceRollerNode::getFaces() const

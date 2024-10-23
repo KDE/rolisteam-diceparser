@@ -45,6 +45,7 @@ public:
     void setNoComma(bool);
     void setRangeList(QList<Range>&);
     virtual ExecutionNode* getCopy() const;
+    std::pair<qint64, qint64> getRange() const;
 
 private:
     void getValueFromDie(Die* die, QStringList& rollResult);

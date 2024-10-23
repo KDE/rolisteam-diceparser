@@ -40,6 +40,11 @@ void DieGroup::removeValue(DieGroup i)
     }
 }
 
+void DieGroup::sort()
+{
+    std::sort(std::begin(*this), std::end(*this), std::greater<qint64>());
+}
+
 int DieGroup::getLost() const
 {
     return getSum() - m_exceptedValue;
@@ -69,63 +74,60 @@ void GroupNode::run(ExecutionNode* previous)
         m_result= m_scalarResult;
 
     m_previousNode= previous;
-    if(nullptr != previous)
-    {
-        m_result->setPrevious(previous->getResult());
-        Result* tmpResult= previous->getResult();
-        if(nullptr != tmpResult)
-        {
-            DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
-            if(nullptr != dice)
-            {
-                auto list= dice->getResultList();
-                DieGroup allResult;
-                for(auto& die : list)
-                {
-                    allResult << die->getListValue();
-                }
-                std::sort(allResult.begin(), allResult.end(), std::greater<qint64>());
-                if(allResult.getSum() > m_groupValue)
-                {
-                    auto copy= allResult;
-                    auto const die= getGroup(allResult);
+    if(isValid(!m_previousNode, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
 
-                    for(auto list : die)
-                    {
-                        for(auto val : list)
-                        {
-                            copy.removeOne(val);
-                        }
-                    }
-                    m_scalarResult->setValue(die.size());
-                    QStringList list;
-                    for(auto group : die)
-                    {
-                        QStringList values;
-                        std::transform(group.begin(), group.end(), std::back_inserter(values),
-                                       [](qint64 val) { return QString::number(val); });
-                        list << QStringLiteral("{%1}").arg(values.join(","));
-                    }
-                    QStringList unused;
-                    std::transform(copy.begin(), copy.end(), std::back_inserter(unused),
-                                   [](qint64 val) { return QString::number(val); });
-                    if(!unused.isEmpty())
-                        m_stringResult->addText(
-                            QStringLiteral("%1 (%2 - [%3])").arg(die.size()).arg(list.join(",")).arg(unused.join(",")));
-                    else
-                        m_stringResult->addText(QStringLiteral("%1 (%2)").arg(die.size()).arg(list.join(",")));
-                }
-                else
-                {
-                    m_scalarResult->setValue(0);
-                }
-            }
+    m_result->setPrevious(previous->getResult());
+    Result* tmpResult= previous->getResult();
+
+    if(isValid(!tmpResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
+
+    if(isValid(!dice, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid Dice result")))
+        return;
+
+    auto allDicelist= dice->getResultList();
+    DieGroup allResult;
+    for(auto& die : allDicelist)
+    {
+        allResult << die->getListValue();
+    }
+    std::sort(allResult.begin(), allResult.end(), std::greater<qint64>());
+    if(allResult.getSum() <= m_groupValue)
+    {
+        m_scalarResult->setValue(0);
+        return;
+    }
+
+    auto copy= allResult;
+    auto const die= getGroup(allResult);
+
+    for(auto& list : die)
+    {
+        for(auto& val : list)
+        {
+            copy.removeOne(val);
         }
     }
-    if(nullptr != m_nextNode)
+    m_scalarResult->setValue(die.size());
+    QStringList list;
+    for(auto group : die)
     {
-        m_nextNode->run(this);
+        QStringList values;
+        std::transform(group.begin(), group.end(), std::back_inserter(values),
+                       [](qint64 val) { return QString::number(val); });
+        list << QStringLiteral("{%1}").arg(values.join(","));
     }
+    QStringList unused;
+    std::transform(copy.begin(), copy.end(), std::back_inserter(unused),
+                   [](qint64 val) { return QString::number(val); });
+    if(!unused.isEmpty())
+        m_stringResult->addText(
+            QStringLiteral("%1 (%2 - [%3])").arg(die.size()).arg(list.join(",")).arg(unused.join(",")));
+    else
+        m_stringResult->addText(QStringLiteral("%1 (%2)").arg(die.size()).arg(list.join(",")));
 }
 
 QString GroupNode::toString(bool withLabel) const

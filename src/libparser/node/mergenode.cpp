@@ -29,16 +29,16 @@ MergeNode::MergeNode() : m_diceResult(new DiceResult())
 }
 void MergeNode::run(ExecutionNode* previous)
 {
-    if(nullptr == previous)
-    {
-        m_errors.insert(Dice::ERROR_CODE::NO_PREVIOUS_ERROR, QObject::tr("No previous node before Merge operator"));
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No previous node before Merge operator")))
         return;
-    }
 
     m_previousNode= previous;
     m_result->setPrevious(previous->getResult());
     ExecutionNode* previousLast= nullptr;
     std::vector<Result*> pastResult;
+    if(!m_startList)
+        return;
+
     for(auto start : *m_startList)
     {
         ExecutionNode* last= getLatestNode(start);
@@ -92,11 +92,6 @@ void MergeNode::run(ExecutionNode* previous)
     auto first= m_startList->front();
     m_startList->clear();
     m_startList->push_back(first);
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
-    }
 }
 #include <QDebug>
 ExecutionNode* MergeNode::getLatestNode(ExecutionNode* node)

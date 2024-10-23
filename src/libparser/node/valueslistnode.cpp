@@ -12,7 +12,7 @@ void ValuesListNode::run(ExecutionNode* previous)
     m_previousNode= previous;
     for(auto node : m_data)
     {
-        node->run(this);
+        node->execute(this);
         auto result= node->getResult();
         if(!result)
             continue;
@@ -23,11 +23,6 @@ void ValuesListNode::run(ExecutionNode* previous)
             dyna->setDisplayed();
         die->insertRollValue(val);
         m_diceResult->insertResult(die);
-    }
-
-    if(nullptr != m_nextNode)
-    {
-        m_nextNode->run(this);
     }
 }
 

@@ -116,43 +116,37 @@ void JumpBackwardNode::run(ExecutionNode* previous)
             parent= parent->getPreviousNode();
         }
     }
-    if(nullptr == result)
+    if(isValid(!result, Dice::ERROR_CODE::DIE_RESULT_EXPECTED,
+               tr(" The @ operator expects dice result. Please check the documentation to fix your command.")))
+        return;
+
+    DiceResult* diceResult= dynamic_cast<DiceResult*>(result);
+    if(nullptr != diceResult)
     {
-        m_errors.insert(
-            Dice::ERROR_CODE::DIE_RESULT_EXPECTED,
-            QObject::tr(" The @ operator expects dice result. Please check the documentation to fix your command."));
+        for(auto& die : diceResult->getResultList())
+        {
+            Die* tmpdie= new Die(*die);
+            //*tmpdie= *die;
+            m_diceResult->insertResult(tmpdie);
+            die->displayed();
+        }
     }
-    else
+
+    m_result->setPrevious(previous->getResult());
+
+    if(m_nextNode)
+        m_nextNode->execute(this);
+
+    if(!diceResult)
+        return;
+
+    for(int i= 0; i < diceResult->getResultList().size(); ++i)
     {
-        DiceResult* diceResult= dynamic_cast<DiceResult*>(result);
-        if(nullptr != diceResult)
+        Die* tmp= diceResult->getResultList().at(i);
+        Die* tmp2= m_diceResult->getResultList().at(i);
+        if(tmp->isHighlighted())
         {
-            for(auto& die : diceResult->getResultList())
-            {
-                Die* tmpdie= new Die(*die);
-                //*tmpdie= *die;
-                m_diceResult->insertResult(tmpdie);
-                die->displayed();
-            }
-        }
-
-        m_result->setPrevious(previous->getResult());
-
-        if(nullptr != m_nextNode)
-        {
-            m_nextNode->run(this);
-        }
-        if(nullptr != diceResult)
-        {
-            for(int i= 0; i < diceResult->getResultList().size(); ++i)
-            {
-                Die* tmp= diceResult->getResultList().at(i);
-                Die* tmp2= m_diceResult->getResultList().at(i);
-                if(tmp->isHighlighted())
-                {
-                    tmp2->setHighlighted(true);
-                }
-            }
+            tmp2->setHighlighted(true);
         }
     }
 }
@@ -165,4 +159,9 @@ ExecutionNode* JumpBackwardNode::getCopy() const
         node->setNextNode(m_nextNode->getCopy());
     }
     return node;
+}
+
+void JumpBackwardNode::execute(ExecutionNode* previous)
+{
+    run(previous);
 }

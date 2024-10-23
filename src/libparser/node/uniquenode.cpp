@@ -27,38 +27,34 @@ UniqueNode::UniqueNode() : m_diceResult(new DiceResult())
 }
 void UniqueNode::run(ExecutionNode* previous)
 {
+    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+        return;
     m_previousNode= previous;
-    if(nullptr != previous)
-    {
-        m_result->setPrevious(previous->getResult());
-        Result* tmpResult= previous->getResult();
-        if(nullptr != tmpResult)
-        {
-            DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
-            if(nullptr != dice)
-            {
-                auto const& resultList= dice->getResultList();
-                std::vector<qint64> formerValues;
-                formerValues.reserve(resultList.size());
-                for(auto& oldDie : resultList)
-                {
-                    auto value= oldDie->getValue();
-                    auto it= std::find(formerValues.begin(), formerValues.end(), value);
 
-                    if(it == formerValues.end())
-                    {
-                        auto die= new Die(*oldDie);
-                        m_diceResult->insertResult(die);
-                        formerValues.push_back(value);
-                    }
-                    oldDie->displayed();
-                }
-            }
-        }
-    }
-    if(nullptr != m_nextNode)
+    m_result->setPrevious(previous->getResult());
+    Result* tmpResult= previous->getResult();
+    if(isValid(!tmpResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+        return;
+
+    DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
+    if(isValid(!dice, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid dice result")))
+        return;
+
+    auto const& resultList= dice->getResultList();
+    std::vector<qint64> formerValues;
+    formerValues.reserve(resultList.size());
+    for(auto& oldDie : resultList)
     {
-        m_nextNode->run(this);
+        auto value= oldDie->getValue();
+        auto it= std::find(formerValues.begin(), formerValues.end(), value);
+
+        if(it == formerValues.end())
+        {
+            auto die= new Die(*oldDie);
+            m_diceResult->insertResult(die);
+            formerValues.push_back(value);
+        }
+        oldDie->displayed();
     }
 }
 
