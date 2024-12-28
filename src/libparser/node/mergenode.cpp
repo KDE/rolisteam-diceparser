@@ -23,75 +23,82 @@
 
 #include <diceparser/parsingtoolbox.h>
 
-MergeNode::MergeNode() : m_diceResult(new DiceResult())
+MergeNode::MergeNode(std::vector<ExecutionNode*>& startList) : m_startList(startList), m_diceResult(new DiceResult())
 {
     m_result= m_diceResult;
+}
+
+int findDistance(const std::vector<ExecutionNode*>& startList, MergeNode* node)
+{
+    int i= 0;
+    for(auto start : startList)
+    {
+        auto temp= start;
+        while(temp != nullptr)
+        {
+            if(temp == node)
+                return i;
+            temp= temp->getNextNode();
+        }
+        ++i;
+    }
+    return i;
 }
 void MergeNode::run(ExecutionNode* previous)
 {
     if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No previous node before Merge operator")))
         return;
 
-    m_previousNode= previous;
-    m_result->setPrevious(previous->getResult());
-    ExecutionNode* previousLast= nullptr;
-    std::vector<Result*> pastResult;
-    if(!m_startList)
+    // m_previousNode= previous;
+    // m_result->setPrevious(previous->getResult());
+    // std::vector<Result*> pastResult;
+    if(isValid(m_startList.empty(), Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No several instruction")))
         return;
 
-    for(auto start : *m_startList)
+    auto instId= findDistance(m_startList, this);
+
+    ExecutionNode* previousLast= nullptr;
+    std::for_each(std::begin(m_startList), std::end(m_startList),
+                  [&previousLast, this](ExecutionNode* node)
+                  {
+                      ExecutionNode* last= getLatestNode(node);
+                      if(previousLast)
+                      {
+                          previousLast->setNextNode(node);
+                          auto resultNode= node->getResult();
+                          if(resultNode)
+                              resultNode->setPrevious(previousLast->getResult());
+                      }
+                      previousLast= last;
+                  });
+
+    if(instId != 0)
     {
-        ExecutionNode* last= getLatestNode(start);
-        if(nullptr == last || nullptr == previousLast)
-        {
-            previousLast= last;
-            continue;
-        }
-
-        auto startResult= start->getResult();
-        if(nullptr == startResult)
-            continue;
-
-        startResult->setPrevious(previousLast->getResult());
-        previousLast->setNextNode(start);
-
-        previousLast= last;
-        Result* tmpResult= last->getResult();
+        Result* tmpResult= previous->getResult();
         while(nullptr != tmpResult)
         {
             DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
-            if(nullptr != dice)
+            if(nullptr != dice && dice != m_diceResult)
             {
-                ///@todo TODO improve here to set homogeneous while is really
                 m_diceResult->setHomogeneous(false);
+
                 for(auto& die : dice->getResultList())
                 {
                     if(!m_diceResult->getResultList().contains(die) && (!die->hasBeenDisplayed()))
                     {
                         Die* tmpdie= new Die(*die);
                         die->displayed();
-                        m_diceResult->getResultList().append(tmpdie);
+                        m_diceResult->insertResult(tmpdie);
                     }
                 }
             }
-            auto it= std::find_if(pastResult.begin(), pastResult.end(),
-                                  [tmpResult](const Result* a) { return (a == tmpResult->getPrevious()); });
-            if(it == pastResult.end())
-            {
-                pastResult.push_back(previousLast->getResult());
-                tmpResult= tmpResult->getPrevious();
-            }
-            else
-            {
-                tmpResult->setPrevious(nullptr);
-                tmpResult= nullptr;
-            }
+            tmpResult= tmpResult->getPrevious();
         }
     }
 
-    auto first= m_startList->front();
-    m_startList->clear();
-    m_startList->push_back(first);
+    auto first= m_startList.front();
+    m_startList.clear();
+    m_startList.push_back(first);
 }
 #include <QDebug>
 ExecutionNode* MergeNode::getLatestNode(ExecutionNode* node)
@@ -126,7 +133,7 @@ qint64 MergeNode::getPriority() const
 }
 ExecutionNode* MergeNode::getCopy() const
 {
-    MergeNode* node= new MergeNode();
+    MergeNode* node= new MergeNode(m_startList);
     if(nullptr != m_nextNode)
     {
         node->setNextNode(m_nextNode->getCopy());
@@ -134,12 +141,7 @@ ExecutionNode* MergeNode::getCopy() const
     return node;
 }
 
-std::vector<ExecutionNode*>* MergeNode::getStartList() const
-{
-    return m_startList;
-}
-
-void MergeNode::setStartList(std::vector<ExecutionNode*>* startList)
+/*void MergeNode::setStartList(const std::vector<ExecutionNode*>& startList)
 {
     m_startList= startList;
-}
+}*/

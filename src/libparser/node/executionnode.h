@@ -6,6 +6,7 @@
 #include <diceparser/diceparserhelper.h>
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
 /**
  * @brief The ExecutionNode class
  */
@@ -87,7 +88,7 @@ public:
 
 protected:
     /**
-     * @brief m_nextNode
+     * @brief previous
      */
     ExecutionNode* m_previousNode= nullptr;
     /**
@@ -102,9 +103,7 @@ protected:
      * @brief m_errors
      */
     QMap<Dice::ERROR_CODE, QString> m_errors;
-
     QMap<Dice::ERROR_CODE, QString> m_warnings;
-
     QString m_id;
 };
 

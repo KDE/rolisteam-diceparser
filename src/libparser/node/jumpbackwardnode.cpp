@@ -29,6 +29,11 @@ JumpBackwardNode::JumpBackwardNode()
     m_result= m_diceResult;
 }
 
+JumpBackwardNode::~JumpBackwardNode()
+{
+    delete m_diceResult;
+}
+
 qint64 JumpBackwardNode::getPriority() const
 {
     return 4;
@@ -126,13 +131,13 @@ void JumpBackwardNode::run(ExecutionNode* previous)
         for(auto& die : diceResult->getResultList())
         {
             Die* tmpdie= new Die(*die);
-            //*tmpdie= *die;
             m_diceResult->insertResult(tmpdie);
             die->displayed();
         }
     }
 
-    m_result->setPrevious(previous->getResult());
+    if(m_result && previous)
+        m_result->setPrevious(previous->getResult());
 
     if(m_nextNode)
         m_nextNode->execute(this);

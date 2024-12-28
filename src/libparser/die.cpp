@@ -58,6 +58,7 @@ Die::Die()
 
 Die::Die(const Die& die)
 {
+    // qDebug() << "dice copy" << m_rollResult.size() << die.m_rollResult.size();
     m_value= die.m_value;
     m_rollResult= die.m_rollResult;
     m_selected= die.m_selected;
@@ -69,8 +70,11 @@ Die::Die(const Die& die)
     m_base= die.m_base;
     m_color= die.getColor();
     m_op= die.getOp();
-    // auto seed= std::chrono::high_resolution_clock::now().time_since_epoch().count();
-    // m_rng= std::mt19937(quintptr(this) + static_cast<unsigned long long>(seed));
+}
+
+Die::~Die()
+{
+    // qDebug() << "die destruction" << m_uuid << this;
 }
 
 void Die::setValue(qint64 r)
@@ -153,6 +157,7 @@ bool Die::hasChildrenValue()
 }
 void Die::replaceLastValue(qint64 value)
 {
+    // qDebug() << "replace value" << value;
     if(!m_rollResult.isEmpty())
         m_rollResult.removeLast();
     insertRollValue(value);
@@ -160,9 +165,6 @@ void Die::replaceLastValue(qint64 value)
 
 void Die::roll(bool adding)
 {
-    if(std::abs(m_base) >= std::abs(m_maxValue))
-        return;
-
     std::uniform_int_distribution<qint64> dist(m_base, m_maxValue);
     qint64 value= dist(s_rng);
     if((adding) || (m_rollResult.isEmpty()))

@@ -62,7 +62,7 @@ DiceResult::~DiceResult()
 {
     if(!m_diceValues.isEmpty())
     {
-        qDeleteAll(m_diceValues.begin(), m_diceValues.end());
+        qDeleteAll(m_diceValues);
         m_diceValues.clear();
     }
 }

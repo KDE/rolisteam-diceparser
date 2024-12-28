@@ -42,6 +42,7 @@ public:
      * @brief Die
      */
     Die(const Die&);
+    ~Die();
     /**
      * @brief setValue
      * @param r

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-#project(dice)
+project(dice)
 
 option(UPDATE_TRANSLATIONS "update Translation" OFF)
 option(NO_PAINTER_OPERATOR "No PAINTING" OFF)

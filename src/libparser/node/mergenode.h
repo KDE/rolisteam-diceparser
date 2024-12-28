@@ -31,20 +31,18 @@
 class MergeNode : public ExecutionNode
 {
 public:
-    MergeNode();
+    MergeNode(std::vector<ExecutionNode*>& startList);
     void run(ExecutionNode* previous);
     virtual QString toString(bool withLabel) const;
     virtual qint64 getPriority() const;
     virtual ExecutionNode* getCopy() const;
-    std::vector<ExecutionNode*>* getStartList() const;
-    void setStartList(std::vector<ExecutionNode*>* startList);
 
 private:
     ExecutionNode* getLatestNode(ExecutionNode* node);
 
 private:
+    std::vector<ExecutionNode*>& m_startList;
     DiceResult* m_diceResult= nullptr;
-    std::vector<ExecutionNode*>* m_startList= nullptr;
 };
 
 #endif // NUMBERNODE_H

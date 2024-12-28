@@ -306,6 +306,8 @@ Validator* ParsingToolBox::readValidator(QString& str, bool hasSquare)
                 qint64 start= operandNode->getScalarResult();
                 Range* range= new Range();
                 range->setConditionType(opCompare);
+                if(start > end)
+                    qDebug() << "ERRORRR";
                 range->setValue(start, end);
                 returnVal= range;
                 isRange= true;
@@ -361,12 +363,13 @@ ValidatorList* ParsingToolBox::readValidatorList(QString& str)
         str= str.remove(0, 1);
         expectSquareBrasket= true;
     }
+    ValidatorList* result{nullptr};
     Validator* tmp= readValidator(str, expectSquareBrasket);
     Dice::LogicOperation opLogic;
 
     QVector<Dice::LogicOperation> operators;
     QList<Validator*> validatorList;
-
+    bool isOK{true};
     while(nullptr != tmp)
     {
         bool hasOperator= readLogicOperation(str, opLogic);
@@ -381,23 +384,26 @@ ValidatorList* ParsingToolBox::readValidatorList(QString& str)
             if((expectSquareBrasket) && (str.startsWith("]")))
             {
                 str= str.remove(0, 1);
-                // isOk=true;
+                isOK= true;
+            }
+            else
+            {
+                // addError(Dice::ERROR_CODE::BAD_SYNTAXE,
+                //        QStringLiteral("Syntax Error: no closing square bracket: %1").arg(str));
             }
             validatorList.append(tmp);
             tmp= nullptr;
         }
     }
-    if(!validatorList.isEmpty())
+
+    if(!validatorList.isEmpty() && isOK)
     {
-        ValidatorList* validator= new ValidatorList();
-        validator->setOperationList(operators);
-        validator->setValidators(validatorList);
-        return validator;
+        result= new ValidatorList();
+        result->setOperationList(operators);
+        result->setValidators(validatorList);
     }
-    else
-    {
-        return nullptr;
-    }
+
+    return result;
 }
 bool ParsingToolBox::readLogicOperation(QString& str, Dice::LogicOperation& op)
 {
@@ -1820,8 +1826,8 @@ bool ParsingToolBox::readOption(QString& str, ExecutionNode* previous) //,
             break;
             case Merge:
             {
-                MergeNode* mergeNode= new MergeNode();
-                mergeNode->setStartList(&m_startNodes);
+                MergeNode* mergeNode= new MergeNode(m_startNodes);
+                // mergeNode->setStartList(m_startNodes);
                 previous->setNextNode(mergeNode);
                 found= true;
             }
@@ -1844,7 +1850,8 @@ bool ParsingToolBox::readOption(QString& str, ExecutionNode* previous) //,
             {
                 auto scNode= new ReplaceValueNode();
                 found= readReplaceValueNode(str, scNode);
-                previous->setNextNode(scNode);
+                if(found)
+                    previous->setNextNode(scNode);
             }
             break;
             case Bind:

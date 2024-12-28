@@ -93,6 +93,8 @@ BooleanCondition::~BooleanCondition()
 }
 qint64 BooleanCondition::hasValid(Die* b, bool recursive, bool unhighlight) const
 {
+    if(!b)
+        return 0;
     QList<qint64> listValues;
     if(m_conditionType == Dice::OnEachValue)
     {
@@ -185,7 +187,7 @@ Dice::CONDITION_STATE BooleanCondition::isValidRangeSize(const std::pair<qint64,
 {
     Dice::CONDITION_STATE state;
     auto valueScalar= valueToScalar();
-    qint64 boundValue= qBound(range.first, valueScalar, range.second);
+    qint64 boundValue= qBound(std::min(range.first, range.second), valueScalar, std::max(range.first, range.second));
     bool isInsideRange= (boundValue == valueScalar);
     switch(m_operator)
     {

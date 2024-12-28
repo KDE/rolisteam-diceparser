@@ -19,74 +19,81 @@ RerollDiceNode::~RerollDiceNode()
 }
 void RerollDiceNode::run(ExecutionNode* previous)
 {
-    if(isValid(!previous, Dice::ERROR_CODE::NO_PREVIOUS_ERROR, tr("No Previous node")))
+    using DE= Dice::ERROR_CODE;
+    using DC= Dice::CONDITION_STATE;
+    if(isValid(!previous, DE::NO_PREVIOUS_ERROR, tr("No Previous node")))
         return;
 
     m_previousNode= previous;
 
     auto previousDiceResult= previous->getResult();
-    if(isValid(!previousDiceResult, Dice::ERROR_CODE::NO_VALID_RESULT, tr("No Valid result")))
+    if(isValid(!previousDiceResult, DE::NO_VALID_RESULT, tr("No Valid result")))
         return;
 
     DiceResult* previous_result= dynamic_cast<DiceResult*>(previousDiceResult);
-    if(isValid(!previous_result, Dice::ERROR_CODE::DIE_RESULT_EXPECTED,
+    if(isValid(!previous_result, DE::DIE_RESULT_EXPECTED,
                tr(" The a operator expects dice result. Please check the documentation and fix your command.")))
         return;
 
     m_result->setPrevious(previous_result);
 
-    for(auto& die : previous_result->getResultList())
+    for(auto const& die : previous_result->getResultList())
     {
+        if(!die)
+            return;
+
         Die* tmpdie= new Die(*die);
         m_diceResult->insertResult(tmpdie);
         die->displayed();
     }
-    // m_diceResult->setResultList(list);
 
     QList<Die*>& list= m_diceResult->getResultList();
     QList<Die*> toRemove;
 
-    for(auto& die : list)
+    for(int i= 0; i < list.size(); ++i)
     {
+        auto die= list[i];
+        if(!die)
+            continue;
+
         bool finished= false;
         auto state
             = m_validatorList->isValidRangeSize(std::make_pair<qint64, qint64>(die->getBase(), die->getMaxValue()));
-        if((Dice::CONDITION_STATE::ALWAYSTRUE == state && m_adding)
-           || (!m_reroll && !m_adding && state == Dice::CONDITION_STATE::UNREACHABLE))
+
+        if(isValid((DC::ALWAYSTRUE == state && m_adding) || (!m_reroll && !m_adding && state == DC::UNREACHABLE),
+                   DE::ENDLESS_LOOP_ERROR,
+                   QStringLiteral("Condition cause an endless loop with this dice: %1")
+                       .arg(QStringLiteral("d[%1,%2]")
+                                .arg(static_cast<int>(die->getBase()))
+                                .arg(static_cast<int>(die->getMaxValue())))))
         {
-            m_errors.insert(Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
-                            QObject::tr("Condition (%1) cause an endless loop with this dice: %2")
-                                .arg(toString(true))
-                                .arg(QStringLiteral("d[%1,%2]")
-                                         .arg(static_cast<int>(die->getBase()))
-                                         .arg(static_cast<int>(die->getMaxValue()))));
             continue;
         }
+
         while(m_validatorList->hasValid(die, false) && !finished)
         {
-            if(m_instruction != nullptr)
+            if(m_instruction)
             {
                 m_instruction->execute(this);
                 auto lastNode= ParsingToolBox::getLeafNode(m_instruction);
-                if(lastNode != nullptr)
+                if(lastNode == nullptr)
+                    continue;
+                auto lastResult= dynamic_cast<DiceResult*>(lastNode->getResult());
+                if(lastResult != nullptr)
                 {
-                    auto lastResult= dynamic_cast<DiceResult*>(lastNode->getResult());
-                    if(lastResult != nullptr)
-                    {
-                        toRemove.append(die);
-                        list.append(lastResult->getResultList());
-                        lastResult->clear();
-                    }
+                    toRemove.append(die);
+                    if(list.size() < lastResult->getResultList().size())
+                        break;
+                    list.append(lastResult->getResultList());
+                    die= list[i];
+                    lastResult->clear();
                 }
             }
             else
             {
                 die->roll(m_adding);
             }
-            if(m_reroll)
-            {
-                finished= true;
-            }
+            finished= m_reroll;
         }
     }
 

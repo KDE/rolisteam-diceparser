@@ -496,7 +496,10 @@ void TestDice::scopeDF()
     auto results= m_diceParser->scalarResultsFromEachInstruction();
 
     for(auto const& result : std::as_const(results))
+    {
+        qDebug() << result;
         QVERIFY(result >= min && result <= max);
+    }
 }
 
 void TestDice::scopeDF_data()
@@ -1043,7 +1046,7 @@ void TestDice::filterTest_data()
     QTest::addRow("cmd3") << "[1, 2, 3]f[.>2&:>5]" << 6;
     QTest::addRow("cmd4") << "[1, 2, 6]f[.<2&>5]" << 6;
     QTest::addRow("cmd5") << "[2, 2, 6]f[.<2&>5]" << 0;
-    QTest::addRow("cmd5") << "[1, 5, 1]f[.<2&>5]" << 0;
+    QTest::addRow("cmd6") << "[1, 5, 1]f[.<2&>5]" << 0;
 }
 
 void TestDice::uniqueTest()
@@ -1106,11 +1109,55 @@ void TestDice::spreadTest_data()
     QTest::addRow("cmd1") << QVector<int>({8, 4, 2});
 }
 
-void TestDice::groupTest() {}
-void TestDice::groupTest_data() {}
+void TestDice::groupTest()
+{
+    QFETCH(QString, cmd);
+    QFETCH(int, scalar);
 
-void TestDice::bindTest() {}
-void TestDice::bindTest_data() {}
+    bool test= m_diceParser->parseLine(cmd);
+    QVERIFY2(test, cmd.toStdString().c_str());
+
+    m_diceParser->start();
+
+    auto results= m_diceParser->scalarResultsFromEachInstruction();
+    auto strResult= m_diceParser->finalStringResult([](const QString& result, const QString&, bool) { return result; });
+
+    QCOMPARE(strResult, QString::number(scalar));
+}
+void TestDice::groupTest_data()
+{
+    QTest::addColumn<QString>("cmd");
+    QTest::addColumn<int>("scalar");
+
+    QTest::addRow("group1") << "[12,7]g5" << 2;
+    QTest::addRow("group2") << "[12,7,4,3,2,1]g5" << 4;
+    QTest::addRow("group3") << "[1,1,1,1]g5" << 0;
+    // QTest::addRow("group4") << "[-18,-2,-1,2]g-3" << 2;
+}
+
+void TestDice::bindTest()
+{
+    QFETCH(QString, cmd);
+    QFETCH(int, scalar);
+
+    bool test= m_diceParser->parseLine(cmd);
+    QVERIFY2(test, cmd.toStdString().c_str());
+
+    m_diceParser->start();
+
+    auto results= m_diceParser->scalarResultsFromEachInstruction();
+    auto strResult= m_diceParser->finalStringResult([](const QString& result, const QString&, bool) { return result; });
+
+    QCOMPARE(strResult, QString::number(scalar));
+}
+void TestDice::bindTest_data()
+{
+    QTest::addColumn<QString>("cmd");
+    QTest::addColumn<int>("scalar");
+
+    QTest::addRow("bind1") << "[12,7];[18,2]b;$2k2;\"$3\"" << 30;
+    QTest::addRow("bind2") << "[12,7];[18,2]b;$2k2kl1;\"$3\"" << 12;
+}
 
 void TestDice::occurenceTest()
 {

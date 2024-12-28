@@ -2,6 +2,16 @@
 
 #include <QUuid>
 
+namespace
+{
+#ifdef QT_DEBUG
+constexpr int WaitingTime{2 * 1000 * 60};
+#else
+constexpr int WaitingTime{30 * 60 * 1000};
+#endif
+
+} // namespace
+
 ExecutionNode::ExecutionNode()
     : m_previousNode(nullptr)
     , m_result(nullptr)
@@ -43,12 +53,19 @@ ExecutionNode* ExecutionNode::getNextNode()
 
 void ExecutionNode::execute(ExecutionNode* previous)
 {
+    QElapsedTimer timer;
+    timer.start();
+
     auto errorCount= m_errors.count();
 
     run(previous);
 
-    if(m_nextNode && errorCount == m_errors.count())
+    auto timeLimit= timer.hasExpired(WaitingTime);
+
+    if(m_nextNode && errorCount == m_errors.count() && !timeLimit)
         m_nextNode->execute(this);
+    else if(timeLimit)
+        qDebug() << "Error too long" << WaitingTime << timeLimit << timer.elapsed();
 }
 
 QMap<Dice::ERROR_CODE, QString> ExecutionNode::getExecutionErrorMap()

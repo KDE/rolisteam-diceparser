@@ -175,7 +175,7 @@ QMap<Dice::ERROR_CODE, QString> DiceParser::errorMap() const
 }
 QString DiceParser::humanReadableError() const
 {
-    auto parsingError= m_parsingToolbox->getErrorList();
+    auto const& parsingError= m_parsingToolbox->getErrorList();
     QString str;
     std::for_each(parsingError.begin(), parsingError.end(),
                   [&str](const QString& text)
@@ -185,7 +185,7 @@ QString DiceParser::humanReadableError() const
                   });
 
     /// list
-    auto errMap= errorMap();
+    auto const& errMap= errorMap();
     std::for_each(errMap.begin(), errMap.end(),
                   [&str](const QString& text)
                   {

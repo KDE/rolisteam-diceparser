@@ -38,27 +38,36 @@ void BindNode::run(ExecutionNode* previous)
     for(auto start : *m_startList)
     {
         ExecutionNode* last= getLatestNode(start);
-        if(nullptr != last)
+        if(!last)
+            continue;
+
+        auto tmpResult= last->getResult();
+        QSet<Result*> alreadyVisited;
+        while(nullptr != tmpResult && !alreadyVisited.contains(tmpResult))
         {
-            auto tmpResult= last->getResult();
-            while(nullptr != tmpResult)
+            alreadyVisited.insert(tmpResult);
+            DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
+
+            if(nullptr != dice)
             {
-                DiceResult* dice= dynamic_cast<DiceResult*>(tmpResult);
-                if(nullptr != dice)
+                m_diceResult->setHomogeneous(false);
+                auto list= dice->getResultList();
+                for(int i= 0; i < list.size(); ++i)
                 {
-                    m_diceResult->setHomogeneous(false);
-                    for(auto& die : dice->getResultList())
+                    auto die= list[i];
+
+                    if(!die)
+                        continue;
+
+                    if(!die->hasBeenDisplayed())
                     {
-                        if(!die->hasBeenDisplayed())
-                        {
-                            Die* tmpdie= new Die(*die);
-                            die->displayed();
-                            m_diceResult->getResultList().append(tmpdie);
-                        }
+                        Die* tmpdie= new Die(*die);
+                        die->displayed();
+                        m_diceResult->getResultList().append(tmpdie);
                     }
                 }
-                tmpResult= tmpResult->getPrevious();
             }
+            tmpResult= tmpResult->getPrevious();
         }
     }
 }
