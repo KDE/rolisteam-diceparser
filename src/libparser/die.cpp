@@ -165,6 +165,8 @@ void Die::replaceLastValue(qint64 value)
 
 void Die::roll(bool adding)
 {
+    if(m_base > m_maxValue)
+        return;
     std::uniform_int_distribution<qint64> dist(m_base, m_maxValue);
     qint64 value= dist(s_rng);
     if((adding) || (m_rollResult.isEmpty()))
@@ -213,7 +215,7 @@ void Die::setBase(qint64 base)
 {
     m_base= base;
 }
-qint64 Die::getBase()
+qint64 Die::getBase() const
 {
     return m_base;
 }

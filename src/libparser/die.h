@@ -123,7 +123,7 @@ public:
      * @brief setBase
      */
     void setBase(qint64);
-    qint64 getBase();
+    qint64 getBase() const;
 
     QString getColor() const;
     void setColor(const QString& color);

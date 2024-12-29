@@ -1,5 +1,7 @@
 #include "explodedicenode.h"
+#include "booleancondition.h"
 #include "diceparser/parsingtoolbox.h"
+#include "validator.h"
 #include "validatorlist.h"
 
 ExplodeDiceNode::ExplodeDiceNode() : m_diceResult(new DiceResult())
@@ -21,11 +23,43 @@ void ExplodeDiceNode::run(ExecutionNode* previous)
     if(!previous_result)
         return;
 
-    for(auto& die : previous_result->getResultList())
+    auto diceList= previous_result->getResultList();
+
+    auto allInvalid= std::all_of(std::begin(diceList), std::end(diceList),
+                                 [](const Die* die) { return die->getMaxValue() < die->getBase(); });
+
+    qint64 maxVal= 0;
+    if(allInvalid)
+    {
+
+        auto const& list= m_validatorList->validators();
+        auto max= std::max_element(std::begin(list), std::end(list),
+                                   [](Validator* a, Validator* b)
+                                   {
+                                       auto aa= dynamic_cast<BooleanCondition*>(a);
+                                       auto bb= dynamic_cast<BooleanCondition*>(b);
+
+                                       if(bb && aa)
+                                           return aa->valueToScalar() < bb->valueToScalar();
+                                       else
+                                           return (!bb && aa);
+                                   });
+
+        auto maxCondition= dynamic_cast<BooleanCondition*>(*max);
+        if(maxCondition)
+            maxVal= maxCondition->valueToScalar();
+    }
+
+    for(auto& die : diceList)
     {
         Die* tmpdie= new Die(*die);
         m_diceResult->insertResult(tmpdie);
         die->displayed();
+        if(allInvalid && maxVal != tmpdie->getMaxValue() && maxVal > tmpdie->getBase())
+        {
+            qInfo() << "Invalid range for explosing dice, set " << maxVal << " as maximum" << tmpdie->getMaxValue();
+            tmpdie->setMaxValue(maxVal);
+        }
     }
 
     qint64 limit= -1;
@@ -46,6 +80,13 @@ void ExplodeDiceNode::run(ExecutionNode* previous)
             = m_validatorList->isValidRangeSize(std::make_pair<qint64, qint64>(die->getBase(), die->getMaxValue()));
         isValid(Dice::CONDITION_STATE::ALWAYSTRUE == validity, Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
                 QObject::tr("Condition (%1) cause an endless loop with this dice: %2")
+                    .arg(toString(true))
+                    .arg(QStringLiteral("d[%1,%2]")
+                             .arg(static_cast<int>(die->getBase()))
+                             .arg(static_cast<int>(die->getMaxValue()))));
+
+        isValid(die->getBase() > die->getMaxValue(), Dice::ERROR_CODE::ENDLESS_LOOP_ERROR,
+                QObject::tr("Condition (%1) cause an endless loop with dice: %2")
                     .arg(toString(true))
                     .arg(QStringLiteral("d[%1,%2]")
                              .arg(static_cast<int>(die->getBase()))

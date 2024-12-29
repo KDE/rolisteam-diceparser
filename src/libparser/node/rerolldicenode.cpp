@@ -1,5 +1,6 @@
 #include <diceparser/parsingtoolbox.h>
 
+#include "booleancondition.h"
 #include "rerolldicenode.h"
 #include "validatorlist.h"
 #include <utility>
@@ -37,7 +38,34 @@ void RerollDiceNode::run(ExecutionNode* previous)
 
     m_result->setPrevious(previous_result);
 
-    for(auto const& die : previous_result->getResultList())
+    QList<Die*>& list1= previous_result->getResultList();
+
+    auto allInvalid= std::all_of(std::begin(list1), std::end(list1),
+                                 [](const Die* die) { return die->getMaxValue() < die->getBase(); });
+
+    qint64 maxVal= 0;
+    if(allInvalid)
+    {
+
+        auto const& list1= m_validatorList->validators();
+        auto max= std::max_element(std::begin(list1), std::end(list1),
+                                   [](Validator* a, Validator* b)
+                                   {
+                                       auto aa= dynamic_cast<BooleanCondition*>(a);
+                                       auto bb= dynamic_cast<BooleanCondition*>(b);
+
+                                       if(bb && aa)
+                                           return aa->valueToScalar() < bb->valueToScalar();
+                                       else
+                                           return (!bb && aa);
+                                   });
+
+        auto maxCondition= dynamic_cast<BooleanCondition*>(*max);
+        if(maxCondition)
+            maxVal= maxCondition->valueToScalar();
+    }
+
+    for(auto const& die : list1)
     {
         if(!die)
             return;
@@ -45,6 +73,13 @@ void RerollDiceNode::run(ExecutionNode* previous)
         Die* tmpdie= new Die(*die);
         m_diceResult->insertResult(tmpdie);
         die->displayed();
+
+        if(allInvalid && maxVal != tmpdie->getMaxValue() && maxVal > tmpdie->getBase())
+        {
+            qInfo() << "Invalid range for explosing dice, set " << maxVal << " as maximum" << tmpdie->getMaxValue()
+                    << tmpdie->getBase();
+            tmpdie->setMaxValue(maxVal);
+        }
     }
 
     QList<Die*>& list= m_diceResult->getResultList();

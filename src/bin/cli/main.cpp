@@ -597,10 +597,6 @@ int main(int argc, char* argv[])
     for(auto& cmd : cmdList)
         cmd= QUrl::fromPercentEncoding(cmd.toUtf8());
 
-    qDebug() << "cmdList" << cmdList;
-    // cmdList << "(1)-1d4e4mk00;300;[$1\u0004$3]k1;0100;200;300;[$1,$2,$3]k1TK\u0004;$1+$1;$2i:[<1]{1}{0}";
-    cmdList << "1d4e4mk00;300;100;[$1,$2,$3]k1TK\u0004";
-
     QJsonArray aliases;
     if(optionParser.isSet(alias))
     {

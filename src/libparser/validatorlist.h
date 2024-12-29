@@ -91,6 +91,8 @@ public:
 
     void validResult(Result* result, bool recursive, bool unlight, std::function<void(Die*, qint64)> functor) const;
 
+    const QList<Validator*>& validators() const;
+
 private:
     QVector<Dice::LogicOperation> m_operators;
     QList<Validator*> m_validatorList;

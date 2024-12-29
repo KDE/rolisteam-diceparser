@@ -25,8 +25,8 @@
 #include "result/result.h"
 #include "validator.h"
 #include <QDebug>
-#include <utility>
 #include <QLoggingCategory>
+#include <utility>
 
 Q_LOGGING_CATEGORY(DiceCat, "DiceParser")
 
@@ -455,4 +455,9 @@ ValidatorList* ValidatorList::getCopy() const
     val->setOperationList(m_operators);
     val->setValidators(m_validatorList);
     return val;
+}
+
+const QList<Validator*>& ValidatorList::validators() const
+{
+    return m_validatorList;
 }

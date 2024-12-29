@@ -24,6 +24,7 @@
 
 #include "diceparser/dicealias.h"
 #include "diceparser/diceparser.h"
+#include "diceparser/diceparserhelper.h"
 #include "die.h"
 
 // node
@@ -205,6 +206,9 @@ private slots:
 
     void deterministTest();
     void deterministTest_data();
+
+    void listValueWithOption();
+    void listValueWithOption_data();
 
 private:
     std::unique_ptr<Die> m_die;
@@ -1380,6 +1384,74 @@ void TestDice::deterministTest_data()
     QTest::addRow("cmd2") << "6;[10,7,8,4,4,3,2,2,1]k$1" << QList<qreal>{6, 36};
 
     // 1d6;10d10e10k\$1
+}
+
+void TestDice::listValueWithOption()
+{
+    QFETCH(QString, command);
+    QFETCH(int, results);
+    QFETCH(Dice::CompareOperator, theOperator);
+    QFETCH(bool, error);
+
+    auto parsing= m_diceParser->parseLine(command);
+    if(!error)
+        QVERIFY2(parsing, "parsing");
+
+    if(parsing)
+        m_diceParser->start();
+
+    if(error)
+    {
+        QVERIFY2(!m_diceParser->humanReadableError().isEmpty() || !m_diceParser->humanReadableWarning().isEmpty(),
+                 "no error");
+        return;
+    }
+    else
+    {
+        QVERIFY2(m_diceParser->humanReadableError().isEmpty(), "no error");
+        QVERIFY2(m_diceParser->humanReadableWarning().isEmpty(), "no warning");
+    }
+
+    auto resultCmd= m_diceParser->scalarResultsFromEachInstruction();
+
+    auto resultCommand= resultCmd.at(0);
+
+    switch(theOperator)
+    {
+    case Dice::CompareOperator::GreaterThan:
+        QVERIFY(results < resultCommand);
+        break;
+    case Dice::CompareOperator::LesserThan:
+        QVERIFY(results > resultCommand);
+        break;
+    case Dice::CompareOperator::LesserOrEqual:
+        qDebug() << results << " " << resultCommand;
+        QVERIFY(results >= resultCommand);
+        break;
+    default:
+        break;
+    }
+}
+
+void TestDice::listValueWithOption_data()
+{
+    QTest::addColumn<QString>("command");
+    QTest::addColumn<int>("results");
+    QTest::addColumn<Dice::CompareOperator>("theOperator");
+    QTest::addColumn<bool>("error");
+
+    // explode
+    QTest::addRow("cmd1") << "[10]e10" << 10 << Dice::CompareOperator::GreaterThan << false;
+    QTest::addRow("cmd2") << "[10]e10" << std::numeric_limits<int>::max() << Dice::CompareOperator::LesserThan << false;
+    // add
+    QTest::addRow("cmd3") << "[10]a10" << 10 << Dice::CompareOperator::GreaterThan << false;
+    QTest::addRow("cmd4") << "[10]a10" << 20 << Dice::CompareOperator::LesserOrEqual << false;
+    // reroll
+    QTest::addRow("cmd3") << "[10]r10" << 0 << Dice::CompareOperator::GreaterThan << false;
+    QTest::addRow("cmd4") << "[10]r10" << 11 << Dice::CompareOperator::LesserOrEqual << false;
+    // reroll until
+    QTest::addRow("cmd5") << "[10]R10" << 10 << Dice::CompareOperator::LesserOrEqual << false;
+    QTest::addRow("cmd6") << "[10]R1" << 10 << Dice::CompareOperator::LesserOrEqual << false;
 }
 
 void TestDice::cleanupTestCase() {}

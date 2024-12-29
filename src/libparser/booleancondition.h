@@ -49,7 +49,6 @@ public:
      */
     virtual Validator* getCopy() const override;
 
-private:
     qint64 valueToScalar() const;
 
 private:
