@@ -1,4 +1,4 @@
-[![Logo](https://invent.kde.org/rolisteam/rolisteam/-/raw/master/resources/rolistheme/1000-rolisteam.png)](http://www.rolisteam.org)
+[![Logo](https://invent.kde.org/rolisteam/rolisteam/-/raw/master/resources/logo/1000-rolisteam.png)](http://www.rolisteam.org)
 
 # DiceParser
 

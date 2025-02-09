@@ -67,6 +67,8 @@ SET( dice_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/node/repeaternode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/node/switchcasenode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/node/replacevaluenode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/node/roundnode.cpp
+
 )
 
 include(install_helper OPTIONAL RESULT_VARIABLE installFound)

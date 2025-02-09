@@ -61,6 +61,7 @@
 #include "node/variablenode.h"
 #include "operationcondition.h"
 #include "range.h"
+#include "roundnode.h"
 #include "validatorlist.h"
 
 QHash<QString, QString> ParsingToolBox::m_variableHash;
@@ -118,6 +119,9 @@ ParsingToolBox::ParsingToolBox()
     m_OptionOp.insert(QStringLiteral("T"), TransformOption);
 
     m_functionMap.insert({QStringLiteral("repeat"), REPEAT});
+    m_functionMap.insert({QStringLiteral("floor"), FLOOR});
+    m_functionMap.insert({QStringLiteral("ceil"), CEIL});
+    m_functionMap.insert({QStringLiteral("round"), ROUND});
 
     m_nodeActionMap.insert(QStringLiteral("@"), JumpBackward);
 
@@ -1438,7 +1442,7 @@ void ParsingToolBox::readSubtitutionParameters(SubtituteInfo& info, QString& res
     info.setLength(info.length() + sizeS - rest.size());
 }
 
-bool ParsingToolBox::readReaperArguments(RepeaterNode* node, QString& source)
+bool ParsingToolBox::readRepeaterArguments(RepeaterNode* node, QString& source)
 {
     if(!readOpenParentheses(source))
         return false;
@@ -1465,6 +1469,26 @@ bool ParsingToolBox::readReaperArguments(RepeaterNode* node, QString& source)
     }
 
     return false;
+}
+
+bool ParsingToolBox::readRoundArguments(RoundNode* node, QString& source)
+{
+    if(!readOpenParentheses(source))
+        return false;
+
+    ExecutionNode* startNode= nullptr;
+    auto instruction= readExpression(source, startNode);
+    if(startNode == nullptr || !instruction)
+    {
+        m_errorMap.insert(Dice::ERROR_CODE::BAD_SYNTAXE, QObject::tr("Can read the paramater for Round Function."));
+        return false;
+    }
+
+    if(!readCloseParentheses(source))
+        return false;
+
+    node->setCommand(startNode);
+    return true;
 }
 bool ParsingToolBox::readExpression(QString& str, ExecutionNode*& node)
 {
@@ -2338,9 +2362,36 @@ bool ParsingToolBox::readFunction(QString& str, ExecutionNode*& node)
             case REPEAT:
             {
                 auto repeaterNode= new RepeaterNode();
-                if(ParsingToolBox::readReaperArguments(repeaterNode, str))
+                if(ParsingToolBox::readRepeaterArguments(repeaterNode, str))
                 {
                     node= repeaterNode;
+                }
+            }
+            break;
+            case FLOOR:
+            {
+                auto roundNode= new RoundNode(RoundNode::FLOOR);
+                if(ParsingToolBox::readRoundArguments(roundNode, str))
+                {
+                    node= roundNode;
+                }
+            }
+            break;
+            case CEIL:
+            {
+                auto roundNode= new RoundNode(RoundNode::CEIL);
+                if(ParsingToolBox::readRoundArguments(roundNode, str))
+                {
+                    node= roundNode;
+                }
+            }
+            break;
+            case ROUND:
+            {
+                auto roundNode= new RoundNode(RoundNode::ROUND);
+                if(ParsingToolBox::readRoundArguments(roundNode, str))
+                {
+                    node= roundNode;
                 }
             }
             break;
@@ -2410,7 +2461,6 @@ std::vector<ExecutionNode*> ParsingToolBox::readInstructionList(QString& str, bo
 
     std::vector<ExecutionNode*> startNodes;
 
-    bool hasInstruction= false;
     bool readInstruction= true;
     while(readInstruction)
     {
@@ -2418,7 +2468,6 @@ std::vector<ExecutionNode*> ParsingToolBox::readInstructionList(QString& str, bo
         bool keepParsing= readExpression(str, startNode);
         if(nullptr != startNode)
         {
-            hasInstruction= true;
             startNodes.push_back(startNode);
             auto latest= startNode;
             if(keepParsing)

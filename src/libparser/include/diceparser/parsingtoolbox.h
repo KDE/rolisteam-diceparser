@@ -36,6 +36,7 @@
 #include <diceparser/diceparser_global.h>
 class Range;
 class RepeaterNode;
+class RoundNode;
 class DiceAlias;
 class ExplodeDiceNode;
 class SwitchCaseNode;
@@ -92,7 +93,10 @@ public:
 
     enum Function
     {
-        REPEAT
+        REPEAT,
+        FLOOR,
+        CEIL,
+        ROUND
     };
     enum OptionOperator
     {
@@ -167,7 +171,8 @@ public:
     static void readSubtitutionParameters(SubtituteInfo& info, QString& rest);
     static bool readPainterParameter(PainterNode* painter, QString& str);
     static bool readComma(QString& str);
-    bool readReaperArguments(RepeaterNode* node, QString& source);
+    bool readRepeaterArguments(RepeaterNode* node, QString& source);
+    bool readRoundArguments(RoundNode* node, QString& source);
     bool readExpression(QString& str, ExecutionNode*& node);
     bool readInstructionOperator(QChar c);
     bool readNode(QString& str, ExecutionNode*& node);

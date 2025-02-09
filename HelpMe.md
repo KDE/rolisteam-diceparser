@@ -429,7 +429,7 @@ Merge operator is used for gathering several dice rolls from different die type 
 This command merges together the result from the d6 and the d8. Then, it applied the k operator on both result to keep the best.
 Be careful, this operator merges the instruction list. Instruction reference (such as $1 etc..) won't work after merge operator.
 
-### Spead
+### Spread
 
 It makes exploded dice as new dice.
 The operator is trigged by *y*.
@@ -439,7 +439,7 @@ The operator is trigged by *y*.
 ```
 
 First Result: `10 [6, 4], 3, 3, 2`  
-Result after spead: `6, 4, 3, 2`  
+Result after spread: `6, 4, 3, 2`  
 Final result: `6+4+3 = 13`  
 
 ### All the same
@@ -657,6 +657,39 @@ Output:
 
 Attention! Be careful, `repeat` works badly with multiple instruction commands
 
+
+### Floor
+
+* 15/7 = 2.14286  
+* Floor(15/7) = 2  
+
+The command:
+
+> 15/7;**floor($1)**;ceil($1);round($1)  
+
+> result: 2.14286,**2**,3,2
+
+### Ceil
+
+* 15/7 = 2.14286  
+* Ceil(15/7) = 3  
+
+The command:
+
+> 15/7;floor($1);**ceil($1)**;round($1)  
+
+> result: 2.14286,2, **3** ,2
+
+### Round
+
+* 15/7 = 2.14286  
+* Round(15/7) = 2  
+
+The command:
+
+> 15/7;floor($1);ceil($1);**round($1)**  
+
+> result: 2.14286,2,3, **2**
 ## The output
 
 DiceParser provides features to let you control the command output.
