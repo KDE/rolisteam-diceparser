@@ -1480,7 +1480,7 @@ bool ParsingToolBox::readRoundArguments(RoundNode* node, QString& source)
     auto instruction= readExpression(source, startNode);
     if(startNode == nullptr || !instruction)
     {
-        m_errorMap.insert(Dice::ERROR_CODE::BAD_SYNTAXE, QObject::tr("Can read the paramater for Round Function."));
+        m_errorMap.insert(Dice::ERROR_CODE::BAD_SYNTAXE, QObject::tr("Can read the parameter for Round Function."));
         return false;
     }
 
