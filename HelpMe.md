@@ -25,11 +25,8 @@
     * [Group](#group)
     * [Spread](#spread)
     * [Unique](#unique)
-    * [All The same](#allsame)
-    * [Value list](#Value-list)
-    * [Switch/Case](#Switch-case)
-    * [Comment (\#)](#comment-)
-* [Functions](#Functions)
+    * [Comment](#comment)
+* [Functions](#functions)
 * [Managing the output](#the-output)
     * [Shortcuts](#shortcuts)
     * [Final Result](#final-result)
@@ -619,7 +616,7 @@ This mode is enabled when a `^` is following the `S`.
 1d100S^[<25]{"Low"}[<50]{"small"}[<75]{"medium"}[>=75]{"big"}
 ```
 
-### Comment (\#)
+### Comment
 
 ```
 2D6 # Sword attack
