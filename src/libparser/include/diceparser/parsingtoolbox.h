@@ -173,6 +173,7 @@ public:
     static bool readComma(QString& str);
     bool readRepeaterArguments(RepeaterNode* node, QString& source);
     bool readRoundArguments(RoundNode* node, QString& source);
+    bool readListExpression(QString& str, ExecutionNode*& node);
     bool readExpression(QString& str, ExecutionNode*& node);
     bool readInstructionOperator(QChar c);
     bool readNode(QString& str, ExecutionNode*& node);

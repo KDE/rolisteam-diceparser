@@ -21,7 +21,7 @@
  ***************************************************************************/
 #include "scalaroperatornode.h"
 
-#include "result/diceresult.h"
+#include "include/diceparser/parsingtoolbox.h"
 #include <QDebug>
 
 ScalarOperatorNode::ScalarOperatorNode()
@@ -252,7 +252,7 @@ QMap<Dice::ERROR_CODE, QString> ScalarOperatorNode::getExecutionErrorMap()
     if(nullptr != m_internalNode)
     {
         auto keys= m_internalNode->getExecutionErrorMap().keys();
-        for(const auto& key : keys)
+        for(const auto& key : std::as_const(keys))
         {
             m_errors.insert(key, m_internalNode->getExecutionErrorMap().value(key));
         }
@@ -260,7 +260,7 @@ QMap<Dice::ERROR_CODE, QString> ScalarOperatorNode::getExecutionErrorMap()
     if(nullptr != m_nextNode)
     {
         auto keys= m_nextNode->getExecutionErrorMap().keys();
-        for(auto const& key : keys)
+        for(auto const& key : std::as_const(keys))
         {
             m_errors.insert(key, m_nextNode->getExecutionErrorMap().value(key));
         }
@@ -277,4 +277,16 @@ ExecutionNode* ScalarOperatorNode::getCopy() const
         node->setNextNode(m_nextNode->getCopy());
     }
     return node;
+}
+
+void ScalarOperatorNode::setNextNode(ExecutionNode* node)
+{
+    if(node && node->getPriority() > getPriority())
+    {
+        auto temp= m_internalNode;
+        temp= ParsingToolBox::getLeafNode(temp);
+        temp->setNextNode(node);
+    }
+    else
+        ExecutionNode::setNextNode(node);
 }

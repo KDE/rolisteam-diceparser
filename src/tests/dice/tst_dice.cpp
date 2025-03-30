@@ -481,7 +481,7 @@ void TestDice::wrongCommandsExecutionTimeTest()
              << "10d10k11"
              << "!!!!";
 
-    for(QString cmd : commands)
+    for(QString cmd : std::as_const(commands))
     {
         bool test= m_diceParser->parseLine(cmd);
         m_diceParser->start();
@@ -603,6 +603,8 @@ void TestDice::mathPriority_data()
     QTest::addRow("cmd6") << "10*(3*2)" << 60;
     QTest::addRow("cmd7") << "60/(3*2)" << 10;
     QTest::addRow("cmd8") << "5-(5*5+5)" << -25;
+    QTest::addRow("cmd9") << "5-(5*5+5)" << -25;
+    QTest::addRow("cmd10") << "2*(5)+1" << 11;
 }
 
 void TestDice::dangerousCommandsTest()
@@ -1236,6 +1238,7 @@ void TestDice::ifCommandTest()
     auto strResultExpected= startExperted[index];
     auto resultText= strResult;
 
+    qDebug() << "debug: result" << resultText << strResultExpected << results;
     QVERIFY2(resultText.startsWith(strResultExpected),
              QString("string result does not fit the expectation %1").arg(cmd).toStdString().c_str());
 }
@@ -1252,6 +1255,7 @@ void TestDice::ifCommandTest_data()
                              "[%2]\"}{\"Failure: %1 [%2]\"}}"
                           << Dice::CompareOperator::GreaterOrEqual << QList<int>({15, 10, 1})
                           << QStringList({"Complete Success:", "Success with Complications:", "Failure:"});
+
     QTest::addRow("cmd2") << "2d10;$1i:[>=15]{\"Complete Success: %1 [%2]\"}{$1i:[>=10]{\"Success "
                              "with Complications: %1 "
                              "[%2]\"}{\"Failure: %1 [%2]\"}}"

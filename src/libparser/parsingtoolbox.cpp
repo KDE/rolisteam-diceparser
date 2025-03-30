@@ -511,7 +511,6 @@ QStringList ParsingToolBox::allFirstResultAsString(bool& hasAlias) const
     QStringList stringListResult;
     for(auto node : m_startNodes)
     {
-        QVariant var;
         auto stringPair= hasResultOfType(Dice::RESULT_TYPE::STRING, node);
         auto scalarPair= hasResultOfType(Dice::RESULT_TYPE::SCALAR, node);
         if(stringPair.first)
@@ -615,7 +614,7 @@ std::pair<QString, QString> ParsingToolBox::finalScalarResult() const
     {
         QStringList strLst;
         auto listScalar= scalarResultsFromEachInstruction();
-        for(auto val : listScalar)
+        for(auto val : std::as_const(listScalar))
         {
             strLst << number(val);
         }
@@ -626,7 +625,7 @@ std::pair<QString, QString> ParsingToolBox::finalScalarResult() const
     {
         auto values= sumOfDiceResult();
         QStringList strLst;
-        for(auto val : values)
+        for(auto val : std::as_const(values))
         {
             strLst << number(val);
         }
@@ -678,15 +677,15 @@ QStringList listOfDiceResult(const QList<ExportedDiceResult>& list, bool removeD
 {
     QStringList listOfDiceResult;
     std::set<QString> alreadyAdded;
-    for(auto map : list)
+    for(const auto& map : list)
     {
         for(auto key : map.keys())
         {
             auto listOfList= map.value(key);
-            for(auto dice : listOfList)
+            for(auto dice : std::as_const(listOfList))
             {
                 QString stringVal;
-                for(auto val : dice)
+                for(const auto& val : dice)
                 {
                     if(removeDouble && (alreadyAdded.end() != alreadyAdded.find(val.uuid())))
                         continue;
@@ -1272,12 +1271,12 @@ QString ParsingToolBox::replacePlaceHolderFromJson(const QString& source, const 
                    {
                        QStringList valuesStr;
                        auto multiKey= (map.size() > 1);
-                       for(auto item : map)
+                       for(const auto& item : map)
                        {
                            auto face= item.first;
                            auto valueList= item.second;
                            QStringList strs;
-                           for(auto list : valueList)
+                           for(const auto& list : valueList)
                            {
                                strs << list.join(",");
                            }
@@ -1376,7 +1375,6 @@ QString ParsingToolBox::replacePlaceHolderToValue(const QString& source, const Q
         });
 
     QString result;
-    int start= source.size() - 1;
     // qDebug() << "replacePlaceHolderToValue @@@:" << result << start << resultList << inst2Result;
 
     for(auto const& pair : inst2Result)
@@ -1477,7 +1475,21 @@ bool ParsingToolBox::readRoundArguments(RoundNode* node, QString& source)
         return false;
 
     ExecutionNode* startNode= nullptr;
-    auto instruction= readExpression(source, startNode);
+    auto instruction= readListExpression(source, startNode);
+
+    /*while(readExpression(source, next))
+    {
+        instruction= true;
+        if(!startNode && next)
+            startNode= next; // first node
+
+        if(last)
+            last->setNextNode(next);
+
+        last= getLeafNode(next);
+        next= nullptr;
+    }*/
+
     if(startNode == nullptr || !instruction)
     {
         m_errorMap.insert(Dice::ERROR_CODE::BAD_SYNTAXE, QObject::tr("Can read the parameter for Round Function."));
@@ -1496,7 +1508,20 @@ bool ParsingToolBox::readExpression(QString& str, ExecutionNode*& node)
     if(readOpenParentheses(str))
     {
         ExecutionNode* internalNode= nullptr;
-        if(readExpression(str, internalNode))
+        bool hasExpression= readListExpression(str, internalNode);
+        /*while(readExpression(str, next))
+        {
+            hasExpression= true;
+            if(!internalNode && next)
+                internalNode= next; // first node
+
+            if(last)
+                last->setNextNode(next);
+
+            last= getLeafNode(next);
+            next= nullptr;
+        }*/
+        if(hasExpression)
         {
             ParenthesesNode* parentheseNode= new ParenthesesNode();
             parentheseNode->setInternelNode(internalNode);
@@ -1546,13 +1571,11 @@ bool ParsingToolBox::readExpression(QString& str, ExecutionNode*& node)
         }
         node= operandNode;
 
-        operandNode= ParsingToolBox::getLeafNode(operandNode);
-        // ExecutionNode* operatorNode=nullptr;
+        /*operandNode= ParsingToolBox::getLeafNode(operandNode);
         while(readOperator(str, operandNode))
         {
-            // operandNode->setNextNode(operatorNode);
             operandNode= ParsingToolBox::getLeafNode(operandNode);
-        }
+        }*/
         return true;
     }
     else if(readCommand(str, operandNode))
@@ -2088,6 +2111,31 @@ bool ParsingToolBox::readReplaceValueNode(QString& str, ReplaceValueNode* node)
     return res;
 }
 
+bool ParsingToolBox::readListExpression(QString& str, ExecutionNode*& node)
+{
+    ExecutionNode* next= nullptr;
+    ExecutionNode* last= nullptr;
+    bool hasExpression= false;
+    bool firstLoop= true;
+    while(readExpression(str, next))
+    {
+        hasExpression= true;
+        if(firstLoop)
+        {
+            node= next;
+            firstLoop= false;
+        }
+
+        if(last)
+            last->setNextNode(next);
+
+        last= getLeafNode(next);
+        next= nullptr;
+    }
+
+    return hasExpression;
+}
+
 bool ParsingToolBox::readBlocInstruction(QString& str, ExecutionNode*& resultnode)
 {
     if(str.startsWith('{'))
@@ -2101,8 +2149,10 @@ bool ParsingToolBox::readBlocInstruction(QString& str, ExecutionNode*& resultnod
             scalarNode= new ScalarOperatorNode();
             scalarNode->setArithmeticOperator(op);
         }
-        if(readExpression(str, node))
+
+        if(readListExpression(str, node))
         {
+            // node= getLeafNode(node);
             if(str.startsWith('}'))
             {
                 if(nullptr == scalarNode)
@@ -2330,7 +2380,8 @@ bool ParsingToolBox::readOperator(QString& str, ExecutionNode* previous)
                 nodeExec->setNextNode(nullptr);
             }
 
-            // nodeResult = node;
+            // if(node->getPriority() > previous->getPriority() && previous->)
+
             previous->setNextNode(node);
 
             result= true;

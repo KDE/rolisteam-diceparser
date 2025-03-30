@@ -37,7 +37,7 @@ public:
     /**
      * @brief setNextNode
      */
-    void setNextNode(ExecutionNode*);
+    virtual void setNextNode(ExecutionNode*);
     /**
      * @brief getNextNode
      * @return

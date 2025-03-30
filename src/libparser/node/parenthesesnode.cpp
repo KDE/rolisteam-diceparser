@@ -39,6 +39,21 @@ void ParenthesesNode::run(ExecutionNode* previous)
         temp= temp->getNextNode();
     }
     m_result= temp->getResult();
+
+    if(!m_nextNode)
+        return;
+
+    auto pNext= m_nextNode->getPriority();
+
+    if(!m_previousNode)
+        return;
+
+    auto previousNextNode= m_previousNode->getNextNode();
+    if(pNext < getPriority() && previousNextNode != this)
+    {
+        m_previousNode->setNextNode(m_nextNode);
+        m_nextNode= nullptr;
+    }
 }
 QString ParenthesesNode::toString(bool b) const
 {

@@ -50,7 +50,7 @@ public:
     /**
      * @brief run
      */
-    virtual void run(ExecutionNode*);
+    virtual void run(ExecutionNode*) override;
     /**
      * @brief setInternalNode
      * @param node
@@ -61,22 +61,22 @@ public:
      * @param wl
      * @return
      */
-    virtual QString toString(bool wl) const;
+    virtual QString toString(bool wl) const override;
     /**
      * @brief getPriority
      * @return
      */
-    virtual qint64 getPriority() const;
+    virtual qint64 getPriority() const override;
     /**
      * @brief generateDotTree
      * @param s
      */
-    void generateDotTree(QString& s);
+    void generateDotTree(QString& s) override;
     /**
      * @brief getErrorList
      * @return
      */
-    virtual QMap<Dice::ERROR_CODE, QString> getExecutionErrorMap();
+    virtual QMap<Dice::ERROR_CODE, QString> getExecutionErrorMap() override;
     /**
      * @brief getArithmeticOperator
      * @return
@@ -92,7 +92,10 @@ public:
      * @brief getCopy
      * @return
      */
-    virtual ExecutionNode* getCopy() const;
+    virtual ExecutionNode* getCopy() const override;
+
+
+    void setNextNode(ExecutionNode* node) override;
 
 private:
     /**
