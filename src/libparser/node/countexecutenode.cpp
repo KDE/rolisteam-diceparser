@@ -35,11 +35,6 @@ void CountExecuteNode::run(ExecutionNode* previous)
         std::function<void(Die*, qint64)> f= [&sum](const Die*, qint64 score) { sum+= score; };
         m_validatorList->validResult(previousResult, true, true, f);
         m_scalarResult->setValue(sum);
-        // TODO nextNode to null?
-        /*if(nullptr != m_nextNode)
-        {
-            m_nextNode->run(this);
-        }*/
     }
 }
 QString CountExecuteNode::toString(bool withlabel) const
