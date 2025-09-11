@@ -171,7 +171,7 @@ QString DiceResult::toString(bool wl)
     }
     if(wl)
     {
-        return QStringLiteral("%3 [label=\"DiceResult Value %1 dice %2\"]")
+        return QStringLiteral("%3 [label=\"DiceResult Value %1 dice %2\", shape=\"box\"]")
             .arg(QString::number(getScalarResult()), scalarSum.join('_'), m_id);
     }
     else

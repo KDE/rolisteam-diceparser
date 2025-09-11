@@ -49,7 +49,7 @@ QString ScalarResult::toString(bool wl)
 {
     if(wl)
     {
-        return QString("%2 [label=\"ScalarResult %1\"]").arg(m_value).arg(m_id);
+        return QString("%2 [label=\"ScalarResult %1\",shape=\"box\"]").arg(m_value).arg(m_id);
     }
     else
     {
