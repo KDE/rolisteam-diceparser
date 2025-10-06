@@ -84,7 +84,7 @@ public:
 
     virtual qint64 getScalarResult();
 
-    bool isValid(bool condition, Dice::ERROR_CODE code , const QString& errorTxt, bool error = true);
+    bool isValid(bool condition, Dice::ERROR_CODE code, const QString& errorTxt, bool error= true);
 
 protected:
     /**

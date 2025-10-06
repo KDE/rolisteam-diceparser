@@ -6,7 +6,7 @@
 class DiceParser;
 namespace Ui
 {
-    class MainWindow;
+class MainWindow;
 }
 
 class MainWindow : public QMainWindow

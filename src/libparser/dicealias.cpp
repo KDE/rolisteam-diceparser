@@ -131,7 +131,7 @@ DiceAlias::DiceAlias(QString pattern, QString command, QString comment, bool isR
     , m_command(command)
     , m_comment(comment)
     , m_type(isReplace ? REPLACE : REGEXP)
-    , m_isEnable(isEnable)
+    , m_disable(isEnable)
 {
 }
 
@@ -145,13 +145,13 @@ DiceAlias::DiceAlias(const DiceAlias& alias)
     m_command= alias.command();
     m_comment= alias.comment();
     m_pattern= alias.pattern();
-    m_isEnable= alias.isEnable();
+    m_disable= alias.isDisable();
     m_type= alias.isReplace() ? REPLACE : REGEXP;
 }
 
 bool DiceAlias::resolved(QString& str)
 {
-    if(!m_isEnable)
+    if(m_disable)
         return false;
 
     if((m_type == REPLACE) && (str.contains(m_pattern)))
@@ -209,14 +209,14 @@ void DiceAlias::setReplace(bool b)
     }
 }
 
-bool DiceAlias::isEnable() const
+bool DiceAlias::isDisable() const
 {
-    return m_isEnable;
+    return m_disable;
 }
 
-void DiceAlias::setEnable(bool b)
+void DiceAlias::setDisable(bool b)
 {
-    m_isEnable= b;
+    m_disable= b;
 }
 
 QString DiceAlias::comment() const

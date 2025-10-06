@@ -18,7 +18,7 @@ public:
 
 private:
     std::vector<ExecutionNode*> m_data;
-    DiceResult* m_diceResult = nullptr;
+    DiceResult* m_diceResult= nullptr;
 };
 
 #endif // VALUESLISTNODE_H

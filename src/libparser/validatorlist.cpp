@@ -39,7 +39,7 @@ void mergeResultsAsAND(const ValidatorResult& diceList, ValidatorResult& result)
             val.appendValidDice(dice.first, dice.second);
     }
     result= val;
-    result.setAllTrue(diceList.allTrue() & result.allTrue());
+    result.setAllTrue(diceList.allTrue() && result.allTrue());
 }
 
 void mergeResultsAsExeclusiveOR(const ValidatorResult& diceList, ValidatorResult& result)

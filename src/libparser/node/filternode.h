@@ -34,7 +34,6 @@ public:
 private:
     DiceResult* m_diceResult;
     ValidatorList* m_validatorList;
-    bool m_eachValue;
 };
 
 #endif // FILTERNODE_H

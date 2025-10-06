@@ -10,7 +10,7 @@ class AllSameNode : public ExecutionNode
 {
 public:
     AllSameNode();
-//    virtual ~AllSameNode();
+    //    virtual ~AllSameNode();
 
     virtual void run(ExecutionNode* previous);
     /**

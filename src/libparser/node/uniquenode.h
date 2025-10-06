@@ -26,7 +26,8 @@
 #include "result/diceresult.h"
 
 /**
- * @brief The UniqueNode class is an ExecutionNode. It is dedicated to unique result of one dice into one dimension array.
+ * @brief The UniqueNode class is an ExecutionNode. It is dedicated to unique result of one dice into one dimension
+ * array.
  */
 class UniqueNode : public ExecutionNode
 {

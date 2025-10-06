@@ -43,7 +43,8 @@ public:
      * @param key
      * @param isReplace
      */
-    DiceAlias(QString pattern, QString command, QString comment= QString{}, bool isReplace= true, bool isEnable= true);
+    DiceAlias(QString pattern, QString command, QString comment= QString{}, bool isReplace= true,
+              bool isDisable= false);
     DiceAlias(const DiceAlias& alias);
     /**
      * @brief ~DiceAlias
@@ -94,12 +95,12 @@ public:
      * @brief isEnable
      * @return
      */
-    bool isEnable() const;
+    bool isDisable() const;
     /**
      * @brief setEnable
      * @param b
      */
-    void setEnable(bool b);
+    void setDisable(bool b);
     /**
      * @brief getComment
      * @return
@@ -116,7 +117,7 @@ private:
     QString m_command;
     QString m_comment;
     RESOLUTION_TYPE m_type;
-    bool m_isEnable;
+    bool m_disable{false};
 };
 
 #endif // DICEALIAS_H

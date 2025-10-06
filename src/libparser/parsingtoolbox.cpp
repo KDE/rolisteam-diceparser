@@ -763,7 +763,6 @@ bool ParsingToolBox::readString(QString& str, QString& strResult)
         str= str.remove(0, 1);
 
         int i= 0;
-        int j= 0;
         bool previousEscape= false;
         QString result;
         /*&&
@@ -780,7 +779,6 @@ bool ParsingToolBox::readString(QString& str, QString& strResult)
                 if(previousEscape && str[i] != '\"')
                 {
                     result+= '\\';
-                    ++j;
                 }
                 result+= str[i];
                 previousEscape= false;
@@ -942,20 +940,12 @@ bool ParsingToolBox::readStopAtFirst(QString& str)
 
 Dice::CONDITION_STATE ParsingToolBox::isValidValidator(ExecutionNode* previous, ValidatorList* val)
 {
-    auto node= getNode<DiceRollerNode>(previous);
-    if(node)
-        return val->isValidRangeSize(node->getRange());
+    auto res= Dice::CONDITION_STATE::ERROR_STATE;
+    DiceResult* result= dynamic_cast<DiceResult*>(previous->getResult());
+    if(result)
+        res= Dice::CONDITION_STATE::REACHABLE;
 
-    auto listNode= getNode<ValuesListNode>(previous);
-
-    if(!listNode)
-        return Dice::CONDITION_STATE::ERROR_STATE;
-
-    auto dice= dynamic_cast<DiceResult*>(listNode->getResult());
-    if(!dice)
-        return Dice::CONDITION_STATE::ERROR_STATE;
-
-    return Dice::CONDITION_STATE::REACHABLE;
+    return res;
 }
 template <typename T>
 T* ParsingToolBox::getNode(ExecutionNode* previous)
@@ -1081,9 +1071,7 @@ void ParsingToolBox::setStartNodes(std::vector<ExecutionNode*> nodes)
 
 void ParsingToolBox::readProbability(QStringList& str, QList<Range>& ranges)
 {
-    quint64 totalDistance= 0;
     quint64 undefDistance= 0;
-    int undefCount= 0;
     int maxValue= 0;
     int i= 0;
     int j= 0;
@@ -1103,7 +1091,7 @@ void ParsingToolBox::readProbability(QStringList& str, QList<Range>& ranges)
                 Range range;
                 range.setValue(start, end);
                 ranges.append(range);
-                totalDistance+= static_cast<quint64>(end - start + 1);
+                // totalDistance+= static_cast<quint64>(end - start + 1);
                 ++i;
             }
             else // percentage
@@ -1112,7 +1100,7 @@ void ParsingToolBox::readProbability(QStringList& str, QList<Range>& ranges)
                 Range range;
                 range.setStart(start);
                 ranges.append(range);
-                ++undefCount;
+                //++undefCount;
                 undefDistance+= static_cast<quint64>(start);
             }
             if((end > maxValue) || (i == 1))
@@ -1771,12 +1759,14 @@ bool ParsingToolBox::readOption(QString& str, ExecutionNode* previous) //,
                 if(nullptr != validatorList)
                 {
                     auto validity= isValidValidator(previous, validatorList);
+                    if(validity != Dice::CONDITION_STATE::ERROR_STATE)
+                    {
+                        CountExecuteNode* countNode= new CountExecuteNode();
+                        countNode->setValidatorList(validatorList);
 
-                    CountExecuteNode* countNode= new CountExecuteNode();
-                    countNode->setValidatorList(validatorList);
-
-                    previous->setNextNode(countNode);
-                    found= true;
+                        previous->setNextNode(countNode);
+                        found= true;
+                    }
                 }
                 else
                 {
@@ -2048,6 +2038,8 @@ ExplodeDiceNode* ParsingToolBox::addExplodeDiceNode(qint64 value, ExecutionNode*
     auto valList= new ValidatorList();
     valList->setValidators(QList<Validator*>() << condition);
     auto validity= isValidValidator(previous, valList);
+    Q_ASSERT(validity != Dice::CONDITION_STATE::ERROR_STATE);
+
     explodeDiceNode->setValidatorList(valList);
     previous->setNextNode(explodeDiceNode);
     return explodeDiceNode;
@@ -2276,10 +2268,10 @@ QString ParsingToolBox::convertAlias(QString str)
 {
     for(auto& cmd : m_aliasList)
     {
-        if(cmd->isEnable())
-        {
-            cmd->resolved(str);
-        }
+        if(cmd->isDisable())
+            continue;
+
+        cmd->resolved(str);
     }
     return str;
 }

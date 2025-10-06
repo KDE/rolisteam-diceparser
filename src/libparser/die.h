@@ -150,7 +150,6 @@ private:
     bool m_highlighted{true};
     qint64 m_maxValue{0};
     qint64 m_base{0};
-    qint64 m_occurence{1};
     QString m_color;
 
     Dice::ArithmeticOperator m_op;

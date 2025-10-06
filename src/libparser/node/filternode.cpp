@@ -1,7 +1,7 @@
 #include "filternode.h"
 #include "validatorlist.h"
 
-FilterNode::FilterNode() : m_diceResult(new DiceResult()), m_eachValue(false)
+FilterNode::FilterNode() : m_diceResult(new DiceResult())
 {
     m_result= m_diceResult;
 }

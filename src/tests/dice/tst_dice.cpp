@@ -30,13 +30,13 @@
 // node
 #include "booleancondition.h"
 #include "diceparser/parsingtoolbox.h"
-#include "node/bind.h"
+//#include "node/bind.h"
 #include "node/countexecutenode.h"
 #include "node/explodedicenode.h"
 #include "node/filternode.h"
-#include "node/groupnode.h"
+//#include "node/groupnode.h"
 #include "node/ifnode.h"
-#include "node/jumpbackwardnode.h"
+//#include "node/jumpbackwardnode.h"
 #include "node/keepdiceexecnode.h"
 #include "node/numbernode.h"
 #include "node/occurencecountnode.h"
@@ -999,7 +999,7 @@ void TestDice::ifTest_data()
     QTest::addColumn<QString>("expectedResult");
 
     int onEach= 0;
-    int onEachValue= 1;
+    // int onEachValue= 1;
     int oneOfThem= 2;
     int allOfThem= 3;
     int onScalar= 4;

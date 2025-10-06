@@ -94,7 +94,6 @@ public:
      */
     virtual ExecutionNode* getCopy() const override;
 
-
     void setNextNode(ExecutionNode* node) override;
 
 private:

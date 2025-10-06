@@ -81,7 +81,9 @@ QString CompositeValidator::toString()
                    [](Validator* validator) { return validator->toString(); });
     QStringList operatorTextList;
     std::transform(
-        m_operators.begin(), m_operators.end(), std::back_inserter(operatorTextList), [](LogicOperation validator) {
+        m_operators.begin(), m_operators.end(), std::back_inserter(operatorTextList),
+        [](LogicOperation validator)
+        {
             static std::map<LogicOperation, QString> map({{OR, "|"}, {EXCLUSIVE_OR, "^"}, {AND, "&"}, {NONE, ""}});
             return map[validator];
         });
@@ -136,9 +138,9 @@ Dice::CONDITION_STATE testXOR(Dice::CONDITION_STATE before, Dice::CONDITION_STAT
 Dice::CONDITION_STATE CompositeValidator::isValidRangeSize(const std::pair<qint64, qint64>& range) const
 {
     std::vector<Dice::CONDITION_STATE> vec;
-    std::transform(
-        m_validatorList.begin(), m_validatorList.end(), std::back_inserter(vec),
-        [range](Validator* validator) -> Dice::CONDITION_STATE { return validator->isValidRangeSize(range); });
+    std::transform(m_validatorList.begin(), m_validatorList.end(), std::back_inserter(vec),
+                   [range](Validator* validator) -> Dice::CONDITION_STATE
+                   { return validator->isValidRangeSize(range); });
 
     auto itError= std::find(vec.begin(), vec.end(), Dice::CONDITION_STATE::ERROR_STATE);
 

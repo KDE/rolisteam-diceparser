@@ -51,8 +51,8 @@ void DiceResult::setResultList(QList<Die*> list)
         m_diceValues.removeAll(it);
 
     /*m_diceValues.erase(
-        std::remove_if(m_diceValues.begin(), m_diceValues.end(), [list](Die* die) { return list.contains(die); }),
-        m_diceValues.end());*/
+        std::remove_if(m_diceValues.begin(), m_diceValues.end(), [list](Die* die) { return
+       list.contains(die); }), m_diceValues.end());*/
 
     qDeleteAll(m_diceValues.begin(), m_diceValues.end());
     m_diceValues.clear();

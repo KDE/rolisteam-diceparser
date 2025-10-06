@@ -61,6 +61,7 @@ public:
      */
     virtual ExecutionNode* getCopy() const override;
     virtual void execute(ExecutionNode* previous= nullptr) override;
+
 private:
     DiceResult* m_diceResult;
     ExecutionNode* m_backwardNode;

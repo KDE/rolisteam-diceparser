@@ -39,6 +39,7 @@ public:
     void setExceptedValue(qint64 exceptedValue);
 
     void sort();
+
 private:
     qint64 m_exceptedValue= 0;
 };

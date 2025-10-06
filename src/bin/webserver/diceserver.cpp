@@ -13,7 +13,9 @@ DiceServer::DiceServer(int port) : QObject(), m_diceParser(new DiceParser())
     // using namespace ;
     m_server= new qhttp::server::QHttpServer(this);
     m_server->listen( // listening on 0.0.0.0:8080
-        QHostAddress::Any, port, [=](qhttp::server::QHttpRequest* req, qhttp::server::QHttpResponse* res) {
+        QHostAddress::Any, port,
+        [=](qhttp::server::QHttpRequest* req, qhttp::server::QHttpResponse* res)
+        {
             req->collectData(1024);
 
             // qhttp::THeaderHash hash = req->headers();

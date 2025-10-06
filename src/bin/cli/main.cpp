@@ -304,6 +304,7 @@ int startDiceParsing(QStringList& cmds, bool withColor, QString baseColor, EXPOR
     DiceParser parser;
     parser.insertAlias(new DiceAlias("L5R5R", QStringLiteral("L[-,⨀,⨀⬢,❂⬢,❁,❁⬢]")), 0);
     parser.insertAlias(new DiceAlias("L5R5S", QStringLiteral("L[-,-,⨀,⨀,⨀❁,⨀⬢,⨀⬢,❂,❂⬢,❁,❁,❁]")), 1);
+    // parser.setVariableDictionary({{"air", "3"}});
     int i= 2;
     for(auto alias : array)
     {
@@ -467,7 +468,7 @@ int main(int argc, char* argv[])
 #endif
 
     QStringList commands;
-    QString cmd;
+    QString cmd, charactersheet;
     QString dotFileStr;
     bool colorb= true;
     QSettings settings("rolisteam", "diceparser");
@@ -563,6 +564,10 @@ int main(int argc, char* argv[])
     else if(optionParser.isSet(dotFile))
     {
         dotFileStr= optionParser.value(dotFile);
+    }
+    else if(optionParser.isSet(character))
+    {
+        charactersheet= optionParser.value(character);
     }
     if(optionParser.isSet(markdown))
     {

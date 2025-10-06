@@ -28,13 +28,15 @@ template <typename Functor>
 qint64 Validator::onEach(const std::vector<Die*>& b, bool recursive, bool unlight, Functor functor) const
 {
     qint64 result= 0;
-    std::for_each(b.begin(), b.end(), [this, recursive, unlight, functor, &result](Die* die) {
-        if(hasValid(die, recursive, unlight))
-        {
-            ++result;
-            functor(die, recursive, unlight);
-        }
-    });
+    std::for_each(b.begin(), b.end(),
+                  [this, recursive, unlight, functor, &result](Die* die)
+                  {
+                      if(hasValid(die, recursive, unlight))
+                      {
+                          ++result;
+                          functor(die, recursive, unlight);
+                      }
+                  });
     return result;
 }
 
@@ -42,13 +44,15 @@ template <typename Functor>
 qint64 Validator::onEachValue(const std::vector<Die*>& b, bool recursive, bool unlight, Functor functor) const
 {
     qint64 result= 0;
-    std::for_each(b.begin(), b.end(), [this, recursive, unlight, functor, &result](Die* die) {
-        if(hasValid(die, recursive, unlight))
-        {
-            ++result;
-            functor(die, recursive, unlight);
-        }
-    });
+    std::for_each(b.begin(), b.end(),
+                  [this, recursive, unlight, functor, &result](Die* die)
+                  {
+                      if(hasValid(die, recursive, unlight))
+                      {
+                          ++result;
+                          functor(die, recursive, unlight);
+                      }
+                  });
     return result;
 }
 
