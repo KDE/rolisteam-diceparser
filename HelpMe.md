@@ -26,6 +26,7 @@
     * [Spread](#spread)
     * [Unique](#unique)
     * [Comment](#comment)
+    * [Transform](#transform)
 * [Functions](#functions)
 * [Managing the output](#the-output)
     * [Shortcuts](#shortcuts)
@@ -632,6 +633,27 @@ So DiceParser can answer the question:
 
 > Am I evil ?
 yes
+
+
+### Transform
+
+Transform dice accordingly to a condition into another value.
+
+```
+5d10T[>5]{15}
+```
+Roll 5 dice of 10 faces, then replace all values greater than 5 with 15 and the others with 0.
+
+> (6,9,7,5,2) => (15,15,15,5,2)
+
+This operator accepts several conditions: `T[=5]{15}[=6]{16}`
+
+> (6,9,7,5,2) => (16,9,7,15,2)
+
+You can also add a final expression to change the value of all dice which don't fit an condition: `T[>5]{15}{0}`
+
+> (6,9,7,5,2) => (15,15,15,0,0)
+
 
 
 ## Functions
