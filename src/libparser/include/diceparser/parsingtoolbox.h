@@ -233,6 +233,7 @@ public:
                                              std::function<QString(const QString&, const QString&, bool)> colorize);
     static SubtituteInfo readVariableFromString(const QString& source, int& start);
     static SubtituteInfo readPlaceHolderFromString(const QString& source, int& start);
+    // static QList<SubtituteInfo> findAllPlaceHolder(const QString& source, int instructionCount);
     static ExportedDiceResult finalDiceResultFromInstruction(ExecutionNode* start);
     static ExportedDiceResult allDiceResultFromInstruction(ExecutionNode* start);
     void addResultInJson(QJsonObject& obj, Dice::RESULT_TYPE type, const QString& key, ExecutionNode* start, bool b);

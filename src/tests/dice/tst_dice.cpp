@@ -401,6 +401,7 @@ void TestDice::commandsTest_data()
     QTest::addRow("cmd93") << "4d10e(10)10";
     QTest::addRow("cmd94") << "15/7;floor($1);ceil($1);round($1)";
     QTest::addRow("cmd94") << "15/7;floor(15/7);ceil(15/7);round(15/7)";
+    QTest::addRow("cmd95") << "10d5;3d6;\"@1\\n@2\"";
 }
 
 void TestDice::rangedCommandsTest()

@@ -945,6 +945,10 @@ Dice::CONDITION_STATE ParsingToolBox::isValidValidator(ExecutionNode* previous, 
     if(result)
         res= Dice::CONDITION_STATE::REACHABLE;
 
+    auto node= getNode<DiceRollerNode>(previous);
+    if(node)
+        res= val->isValidRangeSize(node->getRange());
+
     return res;
 }
 template <typename T>
@@ -1367,10 +1371,12 @@ QString ParsingToolBox::replacePlaceHolderToValue(const QString& source, const Q
 
     for(auto const& pair : inst2Result)
     {
+        // auto placeHolders= findAllPlaceHolder(pair.second.join(","), resultList.size());
         auto instId= pair.first;
         auto list= pair.second.join(",");
         int start= list.size() - 1;
         bool valid= true;
+        bool validResult= false;
         do
         {
             auto ref= readPlaceHolderFromString(list, start);
@@ -1379,16 +1385,20 @@ QString ParsingToolBox::replacePlaceHolderToValue(const QString& source, const Q
                 break;
 
             list.remove(ref.position(), ref.length());
-            auto index= ref.resultIndex() < 0 ? instId + ref.resultIndex() : ref.resultIndex() - 1;
-            qDebug() << "index: " << index << instId;
+            auto index= ref.resultIndex() < 0 ? instId + ref.resultIndex() : ref.resultIndex();
+            // qDebug() << "index: " << index << instId << result << ref.position() << ref.resultIndex();
             auto val= resultList[index - 1];
             list.insert(ref.position(), val);
+            validResult= true;
+        } while(valid);
+
+        if(validResult)
+        {
             if(result.isEmpty())
                 result= list;
             else
                 result= QStringList{result, list}.join(" ,");
-
-        } while(valid);
+        }
     }
 
     if(result.isEmpty())
@@ -2577,6 +2587,14 @@ SubtituteInfo ParsingToolBox::readVariableFromString(const QString& source, int&
     start= i;
     return info;
 }
+
+/*QList<SubtituteInfo> ParsingToolBox::findAllPlaceHolder(const QString& source, int instructionCount)
+{
+    for(int i = instructionCount - 1; i>= 0; --i)
+    {
+
+    }
+}*/
 
 SubtituteInfo ParsingToolBox::readPlaceHolderFromString(const QString& source, int& start)
 {
