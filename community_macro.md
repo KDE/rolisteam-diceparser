@@ -155,3 +155,30 @@ Sucessos para dificuldade 9: 0<br>
 Comando executado: /r vtm 3 9
 
 Author: [Luke](https://www.instagram.com/luke.lucianogoncalves/)
+
+
+## C.O.P.S :
+
+Il est conseillé d’installer ces alias dans cet ordre.
+
+### Localisation
+
+`/macro add loc 1L[pied droit (1),pied gauche(2),ventre +1 (3),ventre +1 (4),Torse +2 (5),Torse +2 (6),Torse +2 (7),bras droit (8), bras gauche(9), tete +3 (10)] False`
+
+Usage: `/r loc`
+
+### Lancer avec des dés bleus
+`/macro add ([0-9]+)C([0-9]+),([0-9]+) \1d10e10p[\3:blue]c[>=\2] True`
+
+Usage: `/r 5C4,1`
+
+Lancer **5** dés, pour une compétence à **4** avec **1** dé bleu.
+
+### Lancer normal
+
+`/macro add ([0-9]+)C([0-9]+) \1d10e10c[>=\2] True`
+
+
+Usage: `/r 5C4`
+
+Lancer **5** dés, pour une compétence à **4**.
