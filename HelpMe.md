@@ -1383,7 +1383,7 @@ The k operator to keep as many dice as you roll is pretty useless because it is 
 | platform | start character(s)  | more information |
 |---|---|--- |
 | Rolisteam |```!```| [Documentation](http://wiki.rolisteam.org/index.php/En:Dice) |
-| Discord  |```!```| To install DiceParser on your server [http://www.rolisteam.org/discord.html](http://www.rolisteam.org/discord.html)  |
+| Discord  |```/r```| To install DiceParser on your server [http://www.rolisteam.org/discord.html](http://www.rolisteam.org/discord.html)  |
 | Twitter  | ```#roll```  | Twit any message starting with #roll following by dice command (e.g: ```#roll 2d6```) |
 | dice   | nothing | dice is a command line application to roll dice: ```dice "2d6"``` |
 
@@ -1401,23 +1401,23 @@ The k operator to keep as many dice as you roll is pretty useless because it is 
 
 Documentation of the bot is now inline with the bot.
 
-## Prefix documentation
+## Documentation
 
-> !help prefix
+> /help global
 
 ## Macro documentation
 
-> !help macro
+> /help macro
 
 [Examples and More information](https://invent.kde.org/rolisteam/rolisteam-diceparser/-/blob/master/community_macro.md)
 
 ## Alias documentation
 
-> !help alias
+> /help alias
 
 ## Conf documentation
 
-> !help conf
+> /help conf
 
 ## Difference between Aliases and Macros
 
@@ -1428,5 +1428,5 @@ Macro is a way to run huge command by typing few letters. Macros may have parame
 
 # Bug report and new features
 
-Please fulfill a ticket in our [Bug tracker](https://invent.kde.org/kde/rolisteam-diceparser/issues/new) system.
-Or contact us on [discord](https://discordapp.com/invite/MrMrQwX) or any [other ways](http://www.rolisteam.org/contact.html)
+Please fulfill a ticket in our [Bug tracker](https://bugs.kde.org/enter_bug.cgi?product=Rolisteam) system (account needed) .
+Or contact us on [discord](https://discordapp.com/invite/MrMrQwX) or any [other ways](https://rolisteam.org/03_contact/)
