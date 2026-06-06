@@ -22,12 +22,10 @@
 
 #include "die.h"
 
-#include <QDateTime>
 #include <QDebug>
 #include <QUuid>
 #include <algorithm>
 #include <array>
-#include <chrono>
 
 void Die::buildSeed()
 {
